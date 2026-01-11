@@ -288,7 +288,7 @@ if ! git -C "$repo_root" apply --stat "$diff_file" > "$diff_summary_out" 2>/dev/
   exit 1
 fi
 
-# facet一覧をスクリプト内に固定（slug:name）
+# Facets are fixed in this script (slug:name).
 facets=(
   "correctness:Correctness and logic"
   "edge-cases:Edge cases and error handling"

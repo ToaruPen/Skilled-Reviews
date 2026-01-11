@@ -1,32 +1,32 @@
 # Skilled-Reviews
 
-Codex CLI の `impl`（= `implement-cycle`）と review 関連スキル（`review-cycle` / `review-parallel` / `code-review` / `pr-review`）および実行スクリプトをまとめたリポジトリです。
+A repository bundling Codex CLI `impl` (alias of `implement-cycle`) plus review-related skills (`review-cycle`, `review-parallel`, `code-review`, `pr-review`) and their helper scripts.
 
-## 含まれるスキル
+## Included skills
 
-- `impl`（alias）
+- `impl` (alias)
 - `implement-cycle`
 - `review-cycle (impl)`
 - `review-parallel (impl)`
 - `code-review (impl)`
 - `pr-review (impl)`
 
-## 前提
+## Prerequisites
 
 - `git`
 - `bash`
 - `python3`
-- `codex` CLI（実際にレビューJSONを生成する場合）
+- `codex` CLI (required only when you actually generate review JSON)
 
-## インストール
+## Install
 
-`~/.codex/skills/`（または `CODEX_HOME` 配下）へコピーします。
+Copies these skills into `~/.codex/skills/` (or under `CODEX_HOME`).
 
 ```bash
 ./scripts/install.sh
 ```
 
-## 使い方（例）
+## Usage (example)
 
 ```bash
 export SOT='- <rules/specs/ticket>'
@@ -35,26 +35,26 @@ export TESTS='- <ran / not run>'
 "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope --dry-run
 ```
 
-主なトグル:
-- `--dry-run`: 事前チェックのみ（no-write）。可能なら `exit 0`、不足があれば `exit 1`。
-- `VALIDATE=1`（default）: JSON出力を検証（壊れ検知）。
-- `FORMAT_JSON=1`（default）: JSONを人間向けに整形（indent=2）。
+Key toggles:
+- `--dry-run`: preflight only (no writes). `exit 0` when ready; `exit 1` when inputs/env are insufficient.
+- `VALIDATE=1` (default): validate JSON outputs (detect breakage).
+- `FORMAT_JSON=1` (default): pretty-format JSON outputs (indent=2).
 
-## 出力先
+## Output location
 
-レビュー対象リポジトリのルート配下に書き込みます:
+All scripts write under the target repository root:
 - `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/...`
 
-`scope-id` / `run-id` は `^[A-Za-z0-9._-]+$` かつ `.`/`..` は禁止（`/` 不許可）。
+`scope-id` / `run-id` must match `^[A-Za-z0-9._-]+$` and must not be `.` or `..` (no `/`).
 
-## 自己テスト
+## Self test
 
 ```bash
 ./scripts/self_test.sh
 ```
 
-`codex` バイナリはスタブで代替するため、ローカル環境に `codex` がなくても実行できます（`bash`/`git`/`python3` は必要）。
+The test stubs out the `codex` binary, so it can run without a local `codex` install (but still requires `bash`/`git`/`python3`).
 
 ## CI
 
-GitHub Actions で `scripts/self_test.sh` を実行します: `.github/workflows/ci.yml`
+GitHub Actions runs `scripts/self_test.sh`: `.github/workflows/ci.yml`

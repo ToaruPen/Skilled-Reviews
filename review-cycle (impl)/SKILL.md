@@ -1,7 +1,7 @@
 ---
 name: review-cycle
 description: >-
-  Implementation-side review loop using codex exec to request an independent review via the code-review skill, iterate on Blocked/Question findings, and confirm readiness for the next step. Use when an implementation agent should run a repeatable review -> fix -> approve cycle. Keywords: review cycle, review loop, codex exec, approval gate, implementation, refactor, refactoring, 実装, リファクタ, リファクタリング.
+  Implementation-side review loop using codex exec to request an independent review via the code-review skill, iterate on Blocked/Question findings, and confirm readiness for the next step. Use when an implementation agent should run a repeatable review -> fix -> approve cycle. Keywords: review cycle, review loop, codex exec, approval gate, implementation, refactor, refactoring.
 ---
 
 # Review Cycle
