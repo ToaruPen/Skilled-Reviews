@@ -1,4 +1,4 @@
-# Skilled-Review
+# Skilled-Reviews
 
 Codex CLI の `impl`（= `implement-cycle`）と review 関連スキル（`review-cycle` / `review-parallel` / `code-review` / `pr-review`）および実行スクリプトをまとめたリポジトリです。
 
