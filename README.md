@@ -6,8 +6,8 @@ A repository bundling Codex CLI `impl` (alias of `implement-cycle`) plus review-
 
 ## Docs
 
-- `docs/wiki_en.md` (English: args/env defaults, outputs, troubleshooting)
-- `docs/wiki_ja.md` (Japanese: args/env defaults, outputs, troubleshooting)
+- [`docs/wiki_en.md`](docs/wiki_en.md) (English: args/env defaults, outputs, troubleshooting)
+- [`docs/wiki_ja.md`](docs/wiki_ja.md) (Japanese: args/env defaults, outputs, troubleshooting)
 
 ## Included skills
 
