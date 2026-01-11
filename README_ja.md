@@ -70,3 +70,7 @@ export TESTS='- <ran / not run>'
 ## CI
 
 GitHub Actions で `scripts/self_test.sh` を実行します: `.github/workflows/ci.yml`
+
+## コントリビュート
+
+コントリビュートは歓迎します！Issue / PR をお待ちしています。

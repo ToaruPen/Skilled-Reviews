@@ -70,3 +70,7 @@ The test stubs out the `codex` binary, so it can run without a local `codex` ins
 ## CI
 
 GitHub Actions runs `scripts/self_test.sh`: `.github/workflows/ci.yml`
+
+## Contributing
+
+Contributions are welcome! Please open an issue or a pull request.
