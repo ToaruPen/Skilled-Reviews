@@ -56,8 +56,11 @@
 ./scripts/install.sh
 ```
 
-**EN:** For options, see `./scripts/install.sh --help`.  
-**JA:** オプションは `./scripts/install.sh --help` を参照してください。
+**EN:** Options (see `./scripts/install.sh --help` for the latest):  
+**JA:** オプション（詳細は `./scripts/install.sh --help` を参照）:
+- `--dest <skills-dir>`: destination directory (default: `${CODEX_HOME:-$HOME/.codex}/skills`)
+- `--link`: install via symlinks instead of copying
+- `--dry-run`: print the plan and perform no writes
 
 ## Quick start / クイックスタート
 
@@ -79,6 +82,11 @@ bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" demo-scope
 
 **EN:** Each script has its own defaults (model/effort). Override via environment variables.  
 **JA:** デフォルト（モデル/推論強度など）はスクリプトごとに設定されています。環境変数で上書きしてください。
+
+Defaults (as of this commit; confirm via `--dry-run`) / デフォルト（このcommit時点。`--dry-run` で確認）:
+- `review-parallel`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=high`
+- `code-review`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=xhigh`
+- `pr-review`: `MODEL=gpt-5.2`, `REASONING_EFFORT=xhigh`
 
 Examples / 例:
 
@@ -112,6 +120,10 @@ Args / 引数:
 - `[run-id]`: optional / 任意（未指定時は `RUN_ID` や `.current_run` を参照し、なければ timestamp 生成）
 - `--dry-run`: preflight only; no writes. Exits `0` if ready; `1` if insufficient.  
   事前チェックのみ（書き込みなし）。準備OKなら `0`、不足があれば `1`。
+  **EN:** `--dry-run` can be placed anywhere in the argv.  
+  **JA:** `--dry-run` はどこに置いても構いません。
+  **EN:** Only `--dry-run` is supported; unknown `--foo` will error.  
+  **JA:** 対応するフラグは基本 `--dry-run` のみで、未知の `--foo` はエラーになります。
 
 Diff selection / 差分の選び方:
 - **EN:** `DIFF_MODE=auto` prefers *staged diff* when non-empty; unstaged changes are ignored in that case.  
@@ -165,6 +177,8 @@ SOT="..." TESTS="..." \
 ```
 
 Notes / 注意:
+- **EN:** `--dry-run` can be placed anywhere in the argv; unknown `--foo` will error.  
+  **JA:** `--dry-run` はどこに置いてもOK、未知の `--foo` はエラーになります。
 - **EN:** Uses `DIFF_MODE=auto` (staged preferred) by default; see `review-parallel` notes.  
   **JA:** 既定は `DIFF_MODE=auto`（staged優先）です。
 - **EN:** Validates and (optionally) pretty-formats output when `VALIDATE=1`.  
@@ -190,6 +204,8 @@ Requirements / 要件:
   **JA:** runディレクトリが存在し、固定6facet + diff summary が揃っている必要があります。
 - **EN:** If `run-id` is omitted, `.current_run` must exist (no auto-generation).  
   **JA:** `run-id` 省略時は `.current_run` が必須（自動生成はしません）。
+- **EN:** `python3` is always required for `pr-review` (it reads fragments and normalizes output).  
+  **JA:** `pr-review` は常に `python3` が必要です（フラグメント読込・出力整形のため）。
 
 Diff summary / 差分サマリ:
 - **EN:** Provide via `DIFF_SUMMARY_FILE` or `DIFF_STAT`, otherwise it uses `diff-summary.txt` under the run directory.  
@@ -228,4 +244,3 @@ Files / 生成物:
 - **`python3 not found`**  
   **EN:** Install Python 3, or set `VALIDATE=0` where supported. (`pr-review` always needs Python.)  
   **JA:** Python3 を用意するか、可能な箇所では `VALIDATE=0` を検討してください（`pr-review` は常に必要）。
-
