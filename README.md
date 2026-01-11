@@ -6,7 +6,8 @@ Codex CLI の `impl`（`implement-cycle` の alias）と、review 関連スキ�
 
 ## Docs / ドキュメント
 
-- `docs/wiki.md` (script args/env defaults, outputs, troubleshooting) / `docs/wiki.md`（引数・env・出力先・トラブルシュート）
+- `docs/wiki_en.md` (English: args/env defaults, outputs, troubleshooting)
+- `docs/wiki_ja.md`（日本語: 引数・env・出力先・トラブルシュート）
 
 ## Included skills / 含まれるスキル
 
