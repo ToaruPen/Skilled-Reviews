@@ -39,6 +39,7 @@ Key toggles:
 - `--dry-run`: preflight only (no writes). `exit 0` when ready; `exit 1` when inputs/env are insufficient.
 - `VALIDATE=1` (default): validate JSON outputs (detect breakage).
 - `FORMAT_JSON=1` (default): pretty-format JSON outputs (indent=2).
+- `REASONING_EFFORT` (default: `xhigh`): override to your preferred reasoning effort (e.g., `REASONING_EFFORT=high`).
 
 ## Output location
 
