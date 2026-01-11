@@ -34,6 +34,7 @@ Optional env: `CONSTRAINTS`, `DIFF_FILE`, `DIFF_MODE`, `STRICT_STAGED`, `DIFF_SU
 - `DIFF_MODE=auto` uses the staged diff when non-empty; unstaged changes are ignored in that case. Use `DIFF_MODE=worktree` to include unstaged changes.
 - `VALIDATE=1` (default) validates outputs; set `VALIDATE=0` to skip validation.
 - `FORMAT_JSON=1` (default) pretty-formats JSON outputs during validation; set `FORMAT_JSON=0` to keep raw formatting.
+- `REASONING_EFFORT=high` (default) can be overridden (e.g., `REASONING_EFFORT=xhigh`) depending on your latency/cost/quality preference.
 - `--dry-run` prints the planned actions and validates prerequisites without writing files; exits 0 if it would run, otherwise 1.
 - Execution timeout (harness): set command timeout to 1h; avoid EXEC_TIMEOUT_SEC unless a shorter, explicit limit is required.
 Requirements: `git`, `codex` CLI, `python3` (unless `VALIDATE=0`).

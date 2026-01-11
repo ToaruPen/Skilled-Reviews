@@ -81,7 +81,7 @@ format_json="${FORMAT_JSON:-1}"
 schema="${SCHEMA_PATH:-${repo_root}/docs/.reviews/schemas/review-fragment.schema.json}"
 codex_bin="${CODEX_BIN:-codex}"
 model="${MODEL:-gpt-5.2-codex}"
-effort="${REASONING_EFFORT:-xhigh}"
+effort="${REASONING_EFFORT:-high}"
 if ! command -v "$codex_bin" >/dev/null 2>&1; then
   echo "codex not found: $codex_bin" >&2
   exit 1
