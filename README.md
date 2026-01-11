@@ -4,6 +4,10 @@ A repository bundling Codex CLI `impl` (alias of `implement-cycle`) plus review-
 
 Codex CLI の `impl`（`implement-cycle` の alias）と、review 関連スキル（`review-cycle` / `review-parallel` / `code-review` / `pr-review`）および補助スクリプトをまとめたリポジトリです。
 
+## Docs / ドキュメント
+
+- `docs/wiki.md` (script args/env defaults, outputs, troubleshooting) / `docs/wiki.md`（引数・env・出力先・トラブルシュート）
+
 ## Included skills / 含まれるスキル
 
 - `impl` (alias)
