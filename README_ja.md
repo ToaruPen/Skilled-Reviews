@@ -42,7 +42,7 @@ export TESTS='- <ran / not run>'
 "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope --dry-run
 ```
 
-## 切り替えオプション（Toggle options）
+## 主なオプション（Key options）
 
 - `--dry-run`: 事前チェックのみ（書き込みなし）。準備OKなら `exit 0`、不足があれば `exit 1`。
 - `VALIDATE=1`（default）: JSON出力を検証（壊れ検知）。
