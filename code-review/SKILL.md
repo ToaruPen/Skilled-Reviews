@@ -97,7 +97,7 @@ Tests: <what ran / not run>
 ## Scripts (optional)
 
 - Single Review (review-cycle integration):
-  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review (impl)/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]`
+  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]`
 - Scope-id must match `[A-Za-z0-9._-]+`.
 - Scope-id must not be `.` or `..`.
 - Run-id must match `[A-Za-z0-9._-]+`.

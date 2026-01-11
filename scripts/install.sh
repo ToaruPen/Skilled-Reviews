@@ -61,10 +61,10 @@ fi
 skills=(
   "impl"
   "implement-cycle"
-  "review-cycle (impl)"
-  "review-parallel (impl)"
-  "code-review (impl)"
-  "pr-review (impl)"
+  "review-cycle"
+  "review-parallel"
+  "code-review"
+  "pr-review"
 )
 
 if [[ "$dry_run" == "1" ]]; then
@@ -125,4 +125,3 @@ for s in "${skills[@]}"; do
 done
 
 echo "Installed (copied) into: $dest_skills" >&2
-

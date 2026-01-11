@@ -1,12 +1,12 @@
 ---
 name: pr-review
-description: "Aggregates parallel review fragments (e.g., review-parallel outputs) into a single PR-level decision without re-reviewing the full diff. Use as review-cycle step 7-2 or when the user asks for an overall PR review focused on risk, conflicts, and approval readiness."
+description: "Aggregates review fragments (e.g., review-parallel outputs) into a single PR-level decision without re-reviewing the full diff. Use as the aggregate step in review-cycle Parallel Review or when the user asks for an overall PR review focused on risk, conflicts, and approval readiness."
 ---
 
 # PR Review
 
 ## Purpose
-Aggregate 7-1 review fragments into a single PR-level decision. Do not re-review the diff.
+Aggregate `review-parallel` fragments into a single PR-level decision. Do not re-review the diff.
 
 ## Inputs (required)
 - Diff summary
@@ -26,7 +26,7 @@ Aggregate 7-1 review fragments into a single PR-level decision. Do not re-review
 
 ## Script (run from repo root)
 Run:
-`SOT="..." TESTS="..." bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" <scope-id> [run-id] [--dry-run]`
+`SOT="..." TESTS="..." bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" <scope-id> [run-id] [--dry-run]`
 Scope-id must match `[A-Za-z0-9._-]+`.
 Scope-id must not be `.` or `..`.
 Run-id must match `[A-Za-z0-9._-]+`.
@@ -41,7 +41,7 @@ Requirements: `git`, `python3`, `codex` CLI.
 Behavior:
 - Reads fragments from `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
 - If `code-review.json` exists, it is appended as an extra fragment (override with `CODE_REVIEW_FILE`).
-- Requires diff summary (defaults to `diff-summary.txt` from 7-1)
+- Requires diff summary (defaults to `diff-summary.txt` from `review-parallel`)
 - Writes aggregate to `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
 - Validates fragments by default; missing facets fail fast
 - Ensures schema files exist by running `ensure_review_schemas.sh` (creates `docs/.reviews/schemas/*.json` if missing)

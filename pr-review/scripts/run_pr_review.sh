@@ -77,7 +77,7 @@ fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skills_root="$(cd "$script_dir/../.." && pwd)"
-ensure_script="${skills_root}/review-parallel (impl)/scripts/ensure_review_schemas.sh"
+ensure_script="${skills_root}/review-parallel/scripts/ensure_review_schemas.sh"
 if [[ ! -x "$ensure_script" ]]; then
   echo "ensure_review_schemas.sh not found: $ensure_script" >&2
   exit 1
@@ -192,7 +192,7 @@ if [[ -z "$diff_stat" ]]; then
 fi
 
 if [[ -z "$diff_stat" ]]; then
-  echo "Diff summary required; set DIFF_SUMMARY_FILE or DIFF_STAT (prefer the 7-1 diff-summary.txt)" >&2
+  echo "Diff summary required; set DIFF_SUMMARY_FILE or DIFF_STAT (prefer the review-parallel diff-summary.txt)" >&2
   exit 1
 fi
 

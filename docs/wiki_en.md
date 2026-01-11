@@ -20,9 +20,11 @@ Source of truth: the script output (`Usage:` / `Optional env:`) is authoritative
   - “Source of Truth” for the expected behavior: ticket/spec/rules/docs. Required by review scripts.
 - **Tests (`TESTS`)**
   - What you ran (or didn’t) and why. Required by review scripts.
-- **7-1 / 7-2**
-  - `review-parallel` creates facet fragments (7-1).
-  - `pr-review` aggregates fragments into a single decision (7-2).
+- **Review scripts / skills**
+  - `code-review` (single): reviews the target diff once and writes `code-review.json` (read-only; no code edits).
+  - `review-cycle`: implementation-side review loop; chooses single (`code-review`) or parallel (`review-parallel` → `pr-review`) based on risk, then reruns as needed until Approved.
+  - `review-parallel` (parallel facets): writes per-facet fragments (`<facet-slug>.json`) plus `diff-summary.txt` (read-only; no code edits).
+  - `pr-review` (aggregate): aggregates `diff-summary.txt` + fragments (and optional `code-review.json`) into `aggregate/pr-review.json` (does not re-review the full diff).
 
 ## Output layout
 
@@ -32,10 +34,10 @@ All review artifacts are written under the *target repository root* (the repo yo
   - `review-fragment.schema.json`
   - `pr-review.schema.json`
 - `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
-  - `diff-summary.txt` (from 7-1, unless overridden)
-  - `<facet-slug>.json` (7-1 fragments)
+  - `diff-summary.txt` (from `review-parallel` by default, unless overridden)
+  - `<facet-slug>.json` (`review-parallel` fragments)
   - `code-review.json` (optional overall fragment)
-  - `aggregate/pr-review.json` (7-2 output)
+  - `aggregate/pr-review.json` (`pr-review` output)
   - `../.current_run` (tracks the most recent `run-id` for that `scope-id`)
 
 ## Installation
@@ -59,11 +61,11 @@ In the repository you want to review (must be a git repo):
 export SOT='- <ticket/spec/rules>'
 export TESTS='- <ran / not run>'
 
-# 7-1: parallel facets (writes fragments + diff summary)
-"$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
+# `review-parallel`: parallel facets (writes fragments + diff summary)
+"$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
 
-# 7-2: aggregate (uses diff summary + fragments only)
-bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" demo-scope
+# `pr-review`: aggregate (uses diff summary + fragments only)
+bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
 ```
 
 ## Defaults and customization
@@ -79,7 +81,7 @@ Example:
 
 ```bash
 MODEL=gpt-5.2-codex REASONING_EFFORT=high \
-  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
+  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
 ```
 
 Notes:
@@ -88,7 +90,7 @@ Notes:
 
 ## Script reference
 
-### `review-parallel`: `run_review_parallel.sh` (7-1)
+### `review-parallel`: `run_review_parallel.sh`
 
 Generates per-facet review fragments (JSON) and a diff summary; updates `.current_run` only after success.
 
@@ -96,7 +98,7 @@ Run:
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 Args:
@@ -130,7 +132,7 @@ Validates fragment JSONs in a run, and can rewrite them with pretty formatting.
 Run:
 
 ```bash
-python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" \
+python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" \
   <scope-id> [run-id] --format
 ```
 
@@ -148,7 +150,7 @@ Run:
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/code-review (impl)/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 Notes:
@@ -159,15 +161,15 @@ Notes:
 Output:
 - `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 
-### `pr-review`: `run_pr_review.sh` (7-2)
+### `pr-review`: `run_pr_review.sh`
 
-Aggregates 7-1 fragments into a single PR-level JSON decision. Does not re-review the full diff.
+Aggregates `review-parallel` fragments into a single PR-level JSON decision. Does not re-review the full diff.
 
 Run:
 
 ```bash
 SOT="..." TESTS="..." \
-  bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" <scope-id> [run-id] [--dry-run]
+  bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 Requirements:
@@ -201,4 +203,3 @@ Files:
   - Only `A-Za-z0-9._-` are allowed (and not `.`/`..`).
 - **`python3 not found`**
   - Install Python 3, or set `VALIDATE=0` where supported. (`pr-review` always needs Python.)
-

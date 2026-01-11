@@ -3,6 +3,10 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+pycache_prefix="${repo_root}/__pycache__"
+mkdir -p "$pycache_prefix"
+export PYTHONPYCACHEPREFIX="$pycache_prefix"
+
 echo "[1/3] shell syntax checks" >&2
 while IFS= read -r -d '' file; do
   bash -n "$file"
@@ -13,7 +17,7 @@ bash "$repo_root/scripts/install.sh" --dry-run >/dev/null
 bash "$repo_root/scripts/install.sh" --dry-run --link >/dev/null
 
 echo "[2/3] python syntax checks" >&2
-python3 -m py_compile "$repo_root/review-parallel (impl)/scripts/validate_review_fragments.py"
+python3 -m py_compile "$repo_root/review-parallel/scripts/validate_review_fragments.py"
 
 echo "[3/3] integration smoke test (stub codex)" >&2
 
@@ -109,9 +113,9 @@ export CODEX_BIN="$fake_codex"
 scope_id="skills-json-format"
 run_id="testrun"
 
-"$repo_root/review-parallel (impl)/scripts/run_review_parallel.sh" "$scope_id" "$run_id" >/dev/null
-"$repo_root/code-review (impl)/scripts/run_code_review.sh" "$scope_id" "$run_id" >/dev/null
-bash "$repo_root/pr-review (impl)/scripts/run_pr_review.sh" "$scope_id" "$run_id" >/dev/null
+"$repo_root/review-parallel/scripts/run_review_parallel.sh" "$scope_id" "$run_id" >/dev/null
+"$repo_root/code-review/scripts/run_code_review.sh" "$scope_id" "$run_id" >/dev/null
+bash "$repo_root/pr-review/scripts/run_pr_review.sh" "$scope_id" "$run_id" >/dev/null
 
 run_dir="$tmp/docs/.reviews/reviewed_scopes/$scope_id/$run_id"
 python3 - "$run_dir" <<'PY'

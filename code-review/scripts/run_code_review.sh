@@ -64,7 +64,7 @@ fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skills_root="$(cd "$script_dir/../.." && pwd)"
-ensure_script="${skills_root}/review-parallel (impl)/scripts/ensure_review_schemas.sh"
+ensure_script="${skills_root}/review-parallel/scripts/ensure_review_schemas.sh"
 if [[ ! -x "$ensure_script" ]]; then
   echo "ensure_review_schemas.sh not found: $ensure_script" >&2
   exit 1

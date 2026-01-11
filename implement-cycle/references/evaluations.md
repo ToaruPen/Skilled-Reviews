@@ -27,7 +27,7 @@ echo "world" >> a.txt
 git add a.txt  # staged diff exists
 
 SOT='- none' TESTS='- not run' CODEX_BIN=true \
-  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" \
+  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" \
   demo-scope --dry-run
 echo "exit=$?"
 ```
@@ -42,7 +42,7 @@ Goal: Confirm `/` is rejected in `scope-id` (and fails fast with `exit 1`).
 
 ```bash
 SOT='- none' TESTS='- not run' CODEX_BIN=true \
-  "$HOME/.codex/skills/code-review (impl)/scripts/run_code_review.sh" \
+  "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" \
   'bad/scope' --dry-run
 echo "exit=$?"
 ```
@@ -71,7 +71,7 @@ done
 printf '1 file changed, 1 insertion(+)\n' > "${run_dir}/diff-summary.txt"
 
 SOT='- none' TESTS='- not run' CODEX_BIN=true DIFF_SUMMARY_FILE="${run_dir}/diff-summary.txt" \
-  "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" \
+  "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" \
   "$scope_id" "$run_id" --dry-run
 echo "exit=$?"
 ```
@@ -79,4 +79,3 @@ echo "exit=$?"
 Expected:
 - Output includes `Plan:`
 - `exit=0`
-

@@ -24,7 +24,7 @@ Run a repeatable implementation-side review loop using codex exec until Approved
   - 3: large change (>600 lines or >15 files or >=3 subsystems or ops impact)
   - Use these thresholds as guidance and keep them aligned with the implement-cycle decision table.
 Hard triggers: authn/authz, secrets, payments, migrations, destructive changes.
-Decision: total <= 9 => Single Review; total >= 10 or hard trigger => Parallel Review (7-1 + 7-2).
+Decision: total <= 9 => Single Review; total >= 10 or hard trigger => Parallel Review (`review-parallel` → `pr-review`).
 
 ## Inputs (required)
 - Diff (WIP/staged/commit range)
@@ -37,23 +37,23 @@ Decision: total <= 9 => Single Review; total >= 10 or hard trigger => Parallel R
 2. If no upstream decision exists, choose Single or Parallel Review using the score above.
 3. Single Review: run the code-review script once (read-only) to produce `code-review.json`.
 4. Parallel Review:
-   - 7-1: run review-parallel and store facet JSONs under `docs/.reviews/`.
+   - Run `review-parallel` and store facet JSONs under `docs/.reviews/`.
      - By default it validates outputs and pretty-formats JSON (`VALIDATE=1`, `FORMAT_JSON=1`).
    - If validation fails: fix inputs, then re-run only missing/invalid facets.
-   - 7-2: run pr-review to aggregate fragments (no full diff; use diff summary only).
+   - Run `pr-review` to aggregate fragments (no full diff; use diff summary only).
      - If `code-review.json` exists under the same run-id, it will be appended as a supplemental fragment.
 5. If Blocked/Question: fix or add context, then re-run the affected step(s).
 6. Stop when status is Approved or Approved with nits.
 
 ## Scripts (run from repo root)
 - Run Single Review (code-review):
-  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review (impl)/scripts/run_code_review.sh" <scope-id> [run-id]`
-- Run review-parallel (7-1):
-  `SOT="..." TESTS="..." "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id]`
+  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id]`
+- Run review-parallel:
+  `SOT="..." TESTS="..." "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id]`
 - Validate fragments:
-  `python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" <scope-id> [run-id] [--format]`
-- Run pr-review (7-2):
-  `SOT="..." TESTS="..." bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" <scope-id> [run-id]`
+  `python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" <scope-id> [run-id] [--format]`
+- Run pr-review:
+  `SOT="..." TESTS="..." bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" <scope-id> [run-id]`
 Scope-id must match `[A-Za-z0-9._-]+`.
 Scope-id must not be `.` or `..`.
 Run-id must match `[A-Za-z0-9._-]+`.
@@ -69,12 +69,12 @@ Run-id must not be `.` or `..`.
 
 ## Outputs
 - Single Review: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
-- 7-1: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
-- 7-1 diff summary: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
-- 7-2: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+- `review-parallel` fragments: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
+- `review-parallel` diff summary: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
+- `pr-review` aggregate: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
 
 ## Guardrails
 - Read-only review; no code edits.
-- 7-2 must not re-review the full diff; use fragments + diff summary.
-- Keep 7-1 and 7-2 inputs consistent (diff/SoT/tests); change inputs => new run-id.
+- `pr-review` must not re-review the full diff; use fragments + diff summary.
+- Keep `review-parallel` and `pr-review` inputs consistent (diff/SoT/tests); change inputs => new run-id.
 - Include untracked files when needed: `git add -N .` before diff generation.

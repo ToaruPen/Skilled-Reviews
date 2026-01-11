@@ -20,9 +20,11 @@ English: `docs/wiki_en.md`
   - 期待される挙動の根拠（チケット/仕様/ルール/ドキュメント）。レビューでは必須です。
 - **Tests (`TESTS`)**
   - 実行したテスト（または未実行の理由）。レビューでは必須です。
-- **7-1 / 7-2**
-  - `review-parallel` が観点別フラグメントを作る（7-1）。
-  - `pr-review` がフラグメントを集約して結論を出す（7-2）。
+- **レビュー系スクリプト / スキル**
+  - `code-review`（single）: 対象diffを1回レビューし、全体フラグメント `code-review.json` を出力（コード変更なし）。
+  - `review-cycle`: 実装側のレビュー反復フロー。リスクに応じて single（`code-review`）/ parallel（`review-parallel` → `pr-review`）を選び、必要なら修正して再実行します。
+  - `review-parallel`（parallel facets）: 固定6観点のフラグメント（`<facet-slug>.json`）+ `diff-summary.txt` を出力（コード変更なし）。
+  - `pr-review`（aggregate）: `diff-summary.txt` + フラグメント（必要なら `code-review.json`）を集約し、結論 `aggregate/pr-review.json` を出力（diff全文は再レビューしません）。
 
 ## 出力レイアウト
 
@@ -32,10 +34,10 @@ English: `docs/wiki_en.md`
   - `review-fragment.schema.json`
   - `pr-review.schema.json`
 - `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
-  - `diff-summary.txt`（通常は7-1が生成。上書き指定も可）
-  - `<facet-slug>.json`（7-1のフラグメント）
+  - `diff-summary.txt`（通常は `review-parallel` が生成。上書き指定も可）
+  - `<facet-slug>.json`（`review-parallel` のフラグメント）
   - `code-review.json`（任意の全体フラグメント）
-  - `aggregate/pr-review.json`（7-2の出力）
+  - `aggregate/pr-review.json`（`pr-review` の出力）
   - `../.current_run`（その `scope-id` の最新 `run-id`）
 
 ## インストール
@@ -59,11 +61,11 @@ Codex の skills ディレクトリへインストールします:
 export SOT='- <ticket/spec/rules>'
 export TESTS='- <ran / not run>'
 
-# 7-1: 観点別フラグメント作成（フラグメント + diff summary を出力）
-"$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
+# `review-parallel`: 観点別フラグメント作成（フラグメント + diff summary を出力）
+"$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
 
-# 7-2: 集約（diff summary + fragments のみ使用）
-bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" demo-scope
+# `pr-review`: 集約（diff summary + fragments のみ使用）
+bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
 ```
 
 ## デフォルトと調整
@@ -79,7 +81,7 @@ bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" demo-scope
 
 ```bash
 MODEL=gpt-5.2-codex REASONING_EFFORT=high \
-  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
+  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
 ```
 
 注意:
@@ -88,7 +90,7 @@ MODEL=gpt-5.2-codex REASONING_EFFORT=high \
 
 ## スクリプト仕様
 
-### `review-parallel`: `run_review_parallel.sh`（7-1）
+### `review-parallel`: `run_review_parallel.sh`
 
 観点別レビューのJSONフラグメントと差分サマリを生成し、成功時のみ `.current_run` を更新します。
 
@@ -96,7 +98,7 @@ MODEL=gpt-5.2-codex REASONING_EFFORT=high \
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 引数:
@@ -130,7 +132,7 @@ run配下のフラグメントJSONを検証し、必要なら整形（pretty）�
 実行:
 
 ```bash
-python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" \
+python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" \
   <scope-id> [run-id] --format
 ```
 
@@ -148,7 +150,7 @@ python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_frag
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/code-review (impl)/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 注意:
@@ -159,15 +161,15 @@ SOT="..." TESTS="..." \
 出力:
 - `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 
-### `pr-review`: `run_pr_review.sh`（7-2）
+### `pr-review`: `run_pr_review.sh`
 
-7-1のフラグメントを集約し、PRレベルの結論JSONを出します。diff全文は再レビューしません。
+`review-parallel` のフラグメントを集約し、PRレベルの結論JSONを出します。diff全文は再レビューしません。
 
 実行:
 
 ```bash
 SOT="..." TESTS="..." \
-  bash "$HOME/.codex/skills/pr-review (impl)/scripts/run_pr_review.sh" <scope-id> [run-id] [--dry-run]
+  bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 要件:
@@ -201,4 +203,3 @@ SOT="..." TESTS="..." \
   - `A-Za-z0-9._-` のみ許可（`.`/`..` 禁止）です。
 - **`python3 not found`**
   - Python3 を用意するか、可能な箇所では `VALIDATE=0` を検討してください（`pr-review` は常に必要）。
-

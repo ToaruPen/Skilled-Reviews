@@ -14,8 +14,8 @@ Purpose: Deterministically select the review path in implement-cycle Step 6.
 
 | Condition (evaluate top to bottom) | Risk | Review Path |
 | --- | --- | --- |
-| Any hard_triggers == true | High | Parallel Review (review-cycle 7-1 + 7-2) |
-| lines_changed > 600 OR files_changed > 15 OR subsystems >= 3 OR ops_impact == true | High | Parallel Review (review-cycle 7-1 + 7-2) |
+| Any hard_triggers == true | High | Parallel Review (`review-parallel` → `pr-review`) |
+| lines_changed > 600 OR files_changed > 15 OR subsystems >= 3 OR ops_impact == true | High | Parallel Review (`review-parallel` → `pr-review`) |
 | lines_changed 201-600 OR files_changed 6-15 OR subsystems == 2 | Medium | Single Review (review-cycle single) |
 | lines_changed <= 200 AND files_changed <= 5 AND subsystems == 1 AND ops_impact == false | Low | code-review only |
 
