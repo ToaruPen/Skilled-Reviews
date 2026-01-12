@@ -20,25 +20,35 @@ English: `docs/wiki_en.md`
   - 期待される挙動の根拠（チケット/仕様/ルール/ドキュメント）。レビューでは必須です。
 - **Tests (`TESTS`)**
   - 実行したテスト（または未実行の理由）。レビューでは必須です。
+- **見積もり (`ESTIMATION_FILE`)**
+  - `implementation`（パッチ実装）で使う見積もり/実装計画ドキュメントのパス。
 - **レビュー系スクリプト / スキル**
   - `code-review`（single）: 対象diffを1回レビューし、全体フラグメント `code-review.json` を出力（コード変更なし）。
   - `review-cycle`: 実装側のレビュー反復フロー。リスクに応じて single（`code-review`）/ parallel（`review-parallel` → `pr-review`）を選び、必要なら修正して再実行します。
   - `review-parallel`（parallel facets）: 固定6観点のフラグメント（`<facet-slug>.json`）+ `diff-summary.txt` を出力（コード変更なし）。
   - `pr-review`（aggregate）: `diff-summary.txt` + フラグメント（必要なら `code-review.json`）を集約し、結論 `aggregate/pr-review.json` を出力（diff全文は再レビューしません）。
+- **実装系スクリプト / スキル**
+  - `implementation`（patch-based）: `codex exec --sandbox read-only` で unified diff patch を生成し、repo-local のガードレールに合格した場合のみ `git apply` で適用します。
 
 ## 出力レイアウト
 
 全てのレビュー成果物は「レビュー対象リポジトリ」のルート配下に書き込みます:
 
-- `docs/.reviews/schemas/`
+- `.skilled-reviews/.reviews/schemas/`
   - `review-fragment.schema.json`
   - `pr-review.schema.json`
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
   - `diff-summary.txt`（通常は `review-parallel` が生成。上書き指定も可）
   - `<facet-slug>.json`（`review-parallel` のフラグメント）
   - `code-review.json`（任意の全体フラグメント）
   - `aggregate/pr-review.json`（`pr-review` の出力）
   - `../.current_run`（その `scope-id` の最新 `run-id`）
+
+実装（`implementation`）の成果物も「対象リポジトリ」のルート配下に書き込みます:
+
+- `.skilled-reviews/.implementation/impl-runs/<scope-id>/<run-id>/`
+  - `raw.txt`（モデルの生出力）
+  - `patch.diff`（抽出した unified diff patch）
 
 ## インストール
 
@@ -68,11 +78,21 @@ export TESTS='- <ran / not run>'
 bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
 ```
 
+パッチ実装（対象repoにガードレール設定が必要）:
+
+```bash
+export SOT='- <ticket/spec/rules>'
+export ESTIMATION_FILE='.skilled-reviews/.estimation/YYYY/MM/<scope>.md'
+
+"$HOME/.codex/skills/implementation/scripts/run_implementation.sh" demo-scope --dry-run
+```
+
 ## デフォルトと調整
 
 デフォルト（モデル/推論強度など）はスクリプトごとに設定されています。環境変数で上書きしてください。
 
 デフォルト（このrepo時点。`--dry-run` で確認）:
+- `implementation`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=high`
 - `review-parallel`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=high`
 - `code-review`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=xhigh`
 - `pr-review`: `MODEL=gpt-5.2`, `REASONING_EFFORT=xhigh`
@@ -122,8 +142,8 @@ SOT="..." TESTS="..." \
   - `EXEC_TIMEOUT_SEC`, `CODEX_BIN`, `SCHEMA_PATH`, ...
 
 出力:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet>.json`
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`（default）
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet>.json`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`（default）
 
 ### `review-parallel`: `validate_review_fragments.py`
 
@@ -159,7 +179,7 @@ SOT="..." TESTS="..." \
 - `VALIDATE=1` のとき検証し、必要なら整形します。
 
 出力:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 
 ### `pr-review`: `run_pr_review.sh`
 
@@ -181,15 +201,43 @@ SOT="..." TESTS="..." \
 - `DIFF_SUMMARY_FILE` または `DIFF_STAT` で渡すか、run配下の `diff-summary.txt` を使います。
 
 出力:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+
+### `implementation`: `run_implementation.sh`（パッチ実装）
+
+`codex exec --sandbox read-only` で unified diff patch を生成し、repo-local のガードレールで検証した上で、許可される場合のみ `git apply` で適用します。
+
+実行（対象repoルートで）:
+
+```bash
+SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." \
+  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id] [--dry-run]
+```
+
+注意:
+- `.skilled-reviews/.implementation/impl-guardrails.toml`（repo-local policy）が必須です（gitignore推奨）。
+- staged/未ステージ差分がある場合は中断します（スコープ混入防止）。
+- `APPLY=0` で生成 + 検証のみ（適用しない）にできます。
+- Blocked/Question の指摘修正を回す場合は `REVIEW_FILE=.skilled-reviews/.reviews/.../code-review.json`（または `pr-review.json`）を渡して修正パッチ生成に使えます。
+
+### `implementation`: `validate_implementation_patch.py`
+
+パッチをガードレールポリシー（および `git apply --check`）で検証します。
+
+実行（対象repoルートで）:
+
+```bash
+python3 "$HOME/.codex/skills/implementation/scripts/validate_implementation_patch.py" \
+  --repo-root . --patch <patch.diff> --policy .skilled-reviews/.implementation/impl-guardrails.toml
+```
 
 ### `review-parallel`: `ensure_review_schemas.sh`
 
 対象リポジトリにスキーマが無ければ生成します（既存は上書きしません）。
 
 生成物:
-- `docs/.reviews/schemas/review-fragment.schema.json`
-- `docs/.reviews/schemas/pr-review.schema.json`
+- `.skilled-reviews/.reviews/schemas/review-fragment.schema.json`
+- `.skilled-reviews/.reviews/schemas/pr-review.schema.json`
 
 ## 典型トラブル
 

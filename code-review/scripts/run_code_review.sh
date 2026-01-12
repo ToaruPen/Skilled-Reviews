@@ -78,7 +78,7 @@ exec_timeout_sec="${EXEC_TIMEOUT_SEC:-}"
 validate="${VALIDATE:-1}"
 format_json="${FORMAT_JSON:-1}"
 
-schema="${SCHEMA_PATH:-${repo_root}/docs/.reviews/schemas/review-fragment.schema.json}"
+schema="${SCHEMA_PATH:-${repo_root}/.skilled-reviews/.reviews/schemas/review-fragment.schema.json}"
 codex_bin="${CODEX_BIN:-codex}"
 model="${MODEL:-gpt-5.2-codex}"
 effort="${REASONING_EFFORT:-xhigh}"
@@ -98,7 +98,7 @@ if [[ -n "$exec_timeout_sec" ]]; then
   fi
 fi
 
-run_root="${repo_root}/docs/.reviews/reviewed_scopes/${scope_id}"
+run_root="${repo_root}/.skilled-reviews/.reviews/reviewed_scopes/${scope_id}"
 run_id_file="${run_root}/.current_run"
 if [[ -z "$run_id" ]]; then
   if [[ -f "$run_id_file" ]]; then

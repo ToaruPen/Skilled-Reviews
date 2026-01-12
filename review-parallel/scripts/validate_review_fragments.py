@@ -242,7 +242,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--schema",
-        default="docs/.reviews/schemas/review-fragment.schema.json",
+        default=".skilled-reviews/.reviews/schemas/review-fragment.schema.json",
         help="Schema path (checked for consistency with the validator)",
     )
     parser.add_argument(
@@ -293,7 +293,7 @@ def main() -> int:
         eprint("no facets provided (set --facets or --extra-file)")
         return 1
 
-    scope_dir = os.path.join("docs/.reviews/reviewed_scopes", args.scope_id)
+    scope_dir = os.path.join(".skilled-reviews/.reviews/reviewed_scopes", args.scope_id)
     run_id = load_run_id(scope_dir, args.run_id)
     if not RUN_ID_RE.match(run_id):
         eprint(f"invalid run-id: {run_id}")

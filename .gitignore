@@ -6,4 +6,4 @@ __pycache__/
 *.tmp
 
 # If this repo is accidentally used as a target repo for review scripts
-docs/.reviews/
+.skilled-reviews/

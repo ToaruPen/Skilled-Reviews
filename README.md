@@ -13,6 +13,7 @@ A repository bundling Codex CLI `impl` (alias of `implement-cycle`) plus review-
 
 - `impl` (alias)
 - `implement-cycle`
+- `implementation`
 - `review-cycle`
 - `review-parallel`
 - `code-review`
@@ -55,7 +56,7 @@ export TESTS='- <ran / not run>'
 ## Output location
 
 All scripts write under the target repository root:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/...`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/...`
 
 `scope-id` / `run-id` must match `^[A-Za-z0-9._-]+$` and must not be `.` or `..` (no `/`).
 

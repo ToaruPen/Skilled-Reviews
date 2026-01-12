@@ -7,7 +7,7 @@ if [[ -z "$repo_root" ]]; then
   exit 1
 fi
 
-schema_dir="${repo_root}/docs/.reviews/schemas"
+schema_dir="${repo_root}/.skilled-reviews/.reviews/schemas"
 mkdir -p "$schema_dir"
 
 write_schema() {

@@ -32,9 +32,17 @@ Run a repeatable, safe implementation loop for a single ticket/issue with clear 
 
 4. Implement within scope
    - Run the `estimation` skill before coding.
-   - If `docs/.estimation` does not exist, create it before saving the estimate.
-   - Save the estimate + implementation plan to `docs/.estimation/YYYY/MM/<ticket-or-issue>.md` (create folders as needed).
+   - If `.skilled-reviews/.estimation` does not exist, create it before saving the estimate.
+   - Save the estimate + implementation plan to `.skilled-reviews/.estimation/YYYY/MM/<ticket-or-issue>.md` (create folders as needed).
    - If the estimate exposes missing info or contradictions, stop and ask before coding.
+   - Implement the scope using one of:
+     - Patch-based (preferred when available): use the `implementation` skill wrapper.
+       - Ensure the target repo has a repo-local policy at `.skilled-reviews/.implementation/impl-guardrails.toml` (recommended to gitignore).
+       - Optionally preflight with `--dry-run` (checks inputs; no patch generation).
+       - Run (from the target repo root):
+         `SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id]`
+       - If you only want patch generation/validation (no apply), set `APPLY=0`.
+     - Manual: edit files directly in the repo, following project rules.
    - Make the smallest change set that satisfies acceptance criteria.
    - Do not expand scope or introduce new architecture without explicit approval.
    - Update related docs/tickets (Evidence/WorkLog/DoD) when required by the project.
@@ -55,9 +63,17 @@ Run a repeatable, safe implementation loop for a single ticket/issue with clear 
    - If both are run, treat `review-cycle` as the final decision; `code-review` is supplemental.
    - Provide required context to the reviewer:
      - Diff scope (staged or WIP)
+     - Include new untracked files: stage them or run `git add -N <paths>` before review so they appear in `git diff`.
      - SoT/Scope: project rules + ticket/spec/docs that define expected behavior
-     - Estimation (required for impl flow): path to `docs/.estimation/...` entry created in step 4
+     - Estimation (required for impl flow): path to `.skilled-reviews/.estimation/...` entry created in step 4
      - Expectations: review-only, scope boundaries, tests run/not run
+   - If review status is Blocked/Question:
+     - Prefer re-running the patch-based implementation loop instead of manual edits:
+       - Provide the required fixes via `REVIEW_FILE` (preferred) or summarize them as `CLARIFICATIONS` (copy key findings + fix ideas).
+       - Tighten `CONSTRAINTS` (e.g., “touch only <file1>,<file2>”, “no refactors”).
+       - Re-run `implementation` with a new run-id; use `APPLY=0` first to inspect the patch, then apply.
+     - Then re-run Step 5 (tests) and Step 6 (review) until Approved / Approved with nits.
+     - Exception: if the required fix needs forbidden patch operations (rename/delete/binary/etc.), apply the fix manually and record the deviation.
    - After an Approved or Approved with nits review, proceed to commit decisions in this flow (do not assume review-cycle will handle commits).
 
 7. Stage and propose commit

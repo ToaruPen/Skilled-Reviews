@@ -37,12 +37,13 @@ Decision: total <= 9 => Single Review; total >= 10 or hard trigger => Parallel R
 2. If no upstream decision exists, choose Single or Parallel Review using the score above.
 3. Single Review: run the code-review script once (read-only) to produce `code-review.json`.
 4. Parallel Review:
-   - Run `review-parallel` and store facet JSONs under `docs/.reviews/`.
+   - Run `review-parallel` and store facet JSONs under `.skilled-reviews/.reviews/`.
      - By default it validates outputs and pretty-formats JSON (`VALIDATE=1`, `FORMAT_JSON=1`).
    - If validation fails: fix inputs, then re-run only missing/invalid facets.
    - Run `pr-review` to aggregate fragments (no full diff; use diff summary only).
      - If `code-review.json` exists under the same run-id, it will be appended as a supplemental fragment.
 5. If Blocked/Question: fix or add context, then re-run the affected step(s).
+   - If you are in a patch-based impl flow (e.g., using the `implementation` skill), prefer re-running it with a new run-id and `REVIEW_FILE`/tight `CONSTRAINTS` instead of manual edits.
 6. Stop when status is Approved or Approved with nits.
 
 ## Scripts (run from repo root)
@@ -68,10 +69,10 @@ Run-id must not be `.` or `..`.
 - Do not set EXEC_TIMEOUT_SEC unless a shorter, explicit limit is required.
 
 ## Outputs
-- Single Review: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
-- `review-parallel` fragments: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
-- `review-parallel` diff summary: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
-- `pr-review` aggregate: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+- Single Review: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
+- `review-parallel` fragments: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
+- `review-parallel` diff summary: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
+- `pr-review` aggregate: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
 
 ## Guardrails
 - Read-only review; no code edits.

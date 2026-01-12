@@ -61,6 +61,7 @@ fi
 skills=(
   "impl"
   "implement-cycle"
+  "implementation"
   "review-cycle"
   "review-parallel"
   "code-review"

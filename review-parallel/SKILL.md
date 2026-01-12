@@ -40,13 +40,13 @@ Optional env: `CONSTRAINTS`, `DIFF_FILE`, `DIFF_MODE`, `STRICT_STAGED`, `DIFF_SU
 Requirements: `git`, `codex` CLI, `python3` (unless `VALIDATE=0`).
 
 Behavior:
-- Writes fragments to `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
-- Writes diff summary to `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
+- Writes fragments to `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
+- Writes diff summary to `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
 - Updates `.current_run` only after all facets succeed
-- Ensures schema files exist by running `ensure_review_schemas.sh` (creates `docs/.reviews/schemas/*.json` if missing)
+- Ensures schema files exist by running `ensure_review_schemas.sh` (creates `.skilled-reviews/.reviews/schemas/*.json` if missing)
 
 ## Output schema
-`docs/.reviews/schemas/review-fragment.schema.json` (JSON only; use [] for empty arrays).
+`.skilled-reviews/.reviews/schemas/review-fragment.schema.json` (JSON only; use [] for empty arrays).
 
 ## Validation
 Run:

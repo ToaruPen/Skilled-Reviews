@@ -39,15 +39,15 @@ Optional env: `CONSTRAINTS`, `DIFF_SUMMARY_FILE`, `DIFF_STAT`, `INTENT`, `RISKY`
 Requirements: `git`, `python3`, `codex` CLI.
 
 Behavior:
-- Reads fragments from `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
+- Reads fragments from `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
 - If `code-review.json` exists, it is appended as an extra fragment (override with `CODE_REVIEW_FILE`).
 - Requires diff summary (defaults to `diff-summary.txt` from `review-parallel`)
-- Writes aggregate to `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+- Writes aggregate to `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
 - Validates fragments by default; missing facets fail fast
-- Ensures schema files exist by running `ensure_review_schemas.sh` (creates `docs/.reviews/schemas/*.json` if missing)
+- Ensures schema files exist by running `ensure_review_schemas.sh` (creates `.skilled-reviews/.reviews/schemas/*.json` if missing)
 
 ## Output schema
-`docs/.reviews/schemas/pr-review.schema.json` (JSON only; use [] for empty arrays).
+`.skilled-reviews/.reviews/schemas/pr-review.schema.json` (JSON only; use [] for empty arrays).
 
 ## Rules
 - Do not request the full diff; use fragments + diff summary only.

@@ -20,25 +20,35 @@ Source of truth: the script output (`Usage:` / `Optional env:`) is authoritative
   - “Source of Truth” for the expected behavior: ticket/spec/rules/docs. Required by review scripts.
 - **Tests (`TESTS`)**
   - What you ran (or didn’t) and why. Required by review scripts.
+- **Estimation (`ESTIMATION_FILE`)**
+  - Path to an estimation/plan document used by `implementation` (patch-based implementation).
 - **Review scripts / skills**
   - `code-review` (single): reviews the target diff once and writes `code-review.json` (read-only; no code edits).
   - `review-cycle`: implementation-side review loop; chooses single (`code-review`) or parallel (`review-parallel` → `pr-review`) based on risk, then reruns as needed until Approved.
   - `review-parallel` (parallel facets): writes per-facet fragments (`<facet-slug>.json`) plus `diff-summary.txt` (read-only; no code edits).
   - `pr-review` (aggregate): aggregates `diff-summary.txt` + fragments (and optional `code-review.json`) into `aggregate/pr-review.json` (does not re-review the full diff).
+- **Implementation script / skill**
+  - `implementation` (patch-based): generates a unified diff patch via `codex exec --sandbox read-only`, validates it against repo-local guardrails, then applies it with `git apply`.
 
 ## Output layout
 
 All review artifacts are written under the *target repository root* (the repo you are reviewing):
 
-- `docs/.reviews/schemas/`
+- `.skilled-reviews/.reviews/schemas/`
   - `review-fragment.schema.json`
   - `pr-review.schema.json`
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
   - `diff-summary.txt` (from `review-parallel` by default, unless overridden)
   - `<facet-slug>.json` (`review-parallel` fragments)
   - `code-review.json` (optional overall fragment)
   - `aggregate/pr-review.json` (`pr-review` output)
   - `../.current_run` (tracks the most recent `run-id` for that `scope-id`)
+
+Implementation artifacts are written under the *target repository root* as well:
+
+- `.skilled-reviews/.implementation/impl-runs/<scope-id>/<run-id>/`
+  - `raw.txt` (raw model output)
+  - `patch.diff` (extracted unified diff patch)
 
 ## Installation
 
@@ -68,11 +78,21 @@ export TESTS='- <ran / not run>'
 bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
 ```
 
+Patch-based implementation (requires repo-local guardrails in the target repo):
+
+```bash
+export SOT='- <ticket/spec/rules>'
+export ESTIMATION_FILE='.skilled-reviews/.estimation/YYYY/MM/<scope>.md'
+
+"$HOME/.codex/skills/implementation/scripts/run_implementation.sh" demo-scope --dry-run
+```
+
 ## Defaults and customization
 
 Each script has its own defaults (model/effort). Override via environment variables.
 
 Defaults (as of this repo state; confirm via `--dry-run`):
+- `implementation`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=high`
 - `review-parallel`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=high`
 - `code-review`: `MODEL=gpt-5.2-codex`, `REASONING_EFFORT=xhigh`
 - `pr-review`: `MODEL=gpt-5.2`, `REASONING_EFFORT=xhigh`
@@ -122,8 +142,8 @@ Supported env (summary):
   - `EXEC_TIMEOUT_SEC`, `CODEX_BIN`, `SCHEMA_PATH`, ...
 
 Outputs:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet>.json`
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt` (default)
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet>.json`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt` (default)
 
 ### `review-parallel`: `validate_review_fragments.py`
 
@@ -159,7 +179,7 @@ Notes:
 - Validates and (optionally) pretty-formats output when `VALIDATE=1`.
 
 Output:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 
 ### `pr-review`: `run_pr_review.sh`
 
@@ -181,15 +201,43 @@ Diff summary:
 - Provide via `DIFF_SUMMARY_FILE` or `DIFF_STAT`, otherwise it uses `diff-summary.txt` under the run directory.
 
 Output:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+
+### `implementation`: `run_implementation.sh` (Patch-based implementation)
+
+Generates a unified diff patch (via `codex exec --sandbox read-only`), validates it against repo-local guardrails, then applies it with `git apply` when allowed.
+
+Run (from the target repo root):
+
+```bash
+SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." \
+  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id] [--dry-run]
+```
+
+Notes:
+- Requires a repo-local policy at `.skilled-reviews/.implementation/impl-guardrails.toml` (recommended to gitignore).
+- Aborts if there are staged/unstaged changes (to avoid mixing scopes).
+- Set `APPLY=0` to generate + validate only (no apply).
+- After a Blocked/Question review, pass `REVIEW_FILE=.skilled-reviews/.reviews/.../code-review.json` (or `pr-review.json`) to drive a follow-up fix run.
+
+### `implementation`: `validate_implementation_patch.py`
+
+Validates a patch against the guardrails policy (and `git apply --check`).
+
+Run (from the target repo root):
+
+```bash
+python3 "$HOME/.codex/skills/implementation/scripts/validate_implementation_patch.py" \
+  --repo-root . --patch <patch.diff> --policy .skilled-reviews/.implementation/impl-guardrails.toml
+```
 
 ### `review-parallel`: `ensure_review_schemas.sh`
 
 Creates schema files in the target repo if missing (does not overwrite).
 
 Files:
-- `docs/.reviews/schemas/review-fragment.schema.json`
-- `docs/.reviews/schemas/pr-review.schema.json`
+- `.skilled-reviews/.reviews/schemas/review-fragment.schema.json`
+- `.skilled-reviews/.reviews/schemas/pr-review.schema.json`
 
 ## Troubleshooting
 

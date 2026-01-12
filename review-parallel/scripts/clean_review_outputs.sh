@@ -26,7 +26,7 @@ if [[ -z "$repo_root" ]]; then
   exit 1
 fi
 
-dir="${repo_root}/docs/.reviews/reviewed_scopes/${scope_id}/${run_id}"
+dir="${repo_root}/.skilled-reviews/.reviews/reviewed_scopes/${scope_id}/${run_id}"
 if [[ ! -d "$dir" ]]; then
   exit 0
 fi

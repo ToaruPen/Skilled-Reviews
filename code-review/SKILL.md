@@ -89,8 +89,8 @@ Tests: <what ran / not run>
 
 ## Optional JSON Output (review-cycle integration)
 
-- Path: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
-- Schema: `docs/.reviews/schemas/review-fragment.schema.json`
+- Path: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
+- Schema: `.skilled-reviews/.reviews/schemas/review-fragment.schema.json`
 - Use `facet="Overall review (code-review)"` and `facet_slug="overall"`
 - Generate via `codex exec --output-schema <schema> --output-last-message <path>` (JSON only)
 
@@ -108,7 +108,7 @@ Tests: <what ran / not run>
 - `FORMAT_JSON=1` (default) pretty-formats the output JSON during validation; set `FORMAT_JSON=0` to keep raw formatting.
 - `--dry-run` prints the planned actions and validates prerequisites without writing files; exits 0 if it would run, otherwise 1.
 - Requirements: `git`, `codex` CLI, `python3` (unless `VALIDATE=0`).
-- Output: `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
+- Output: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 - Execution timeout (harness): set command timeout to 1h; avoid EXEC_TIMEOUT_SEC unless a shorter, explicit limit is required.
 
 ## Status Rules

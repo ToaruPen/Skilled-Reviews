@@ -13,6 +13,7 @@ Codex CLI の `impl`（`implement-cycle` の alias）と、review 関連スキ�
 
 - `impl`（alias）
 - `implement-cycle`
+- `implementation`
 - `review-cycle`
 - `review-parallel`
 - `code-review`
@@ -55,7 +56,7 @@ export TESTS='- <ran / not run>'
 ## 出力先
 
 全てのスクリプトは、対象リポジトリのルート配下に書き込みます:
-- `docs/.reviews/reviewed_scopes/<scope-id>/<run-id>/...`
+- `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/...`
 
 `scope-id` / `run-id` は `^[A-Za-z0-9._-]+$` に一致し、`.` / `..` は禁止です（`/` 不許可）。
 

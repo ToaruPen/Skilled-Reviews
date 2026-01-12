@@ -62,7 +62,7 @@ git init
 
 scope_id="demo-scope"
 run_id="testrun"
-run_dir="docs/.reviews/reviewed_scopes/${scope_id}/${run_id}"
+run_dir=".skilled-reviews/.reviews/reviewed_scopes/${scope_id}/${run_id}"
 
 mkdir -p "$run_dir"
 for slug in correctness edge-cases security performance tests-observability design-consistency; do
@@ -79,3 +79,114 @@ echo "exit=$?"
 Expected:
 - Output includes `Plan:`
 - `exit=0`
+
+## Evaluation 4: implementation dry-run (preflight only; no codex required)
+
+Goal: Confirm `implementation` preflight works and returns `exit 0` without requiring a real `codex` binary.
+
+```bash
+tmp="$(mktemp -d)"
+cd "$tmp"
+git init
+git config user.email test@example.com
+git config user.name test
+
+echo "hello" > a.txt
+git add a.txt
+git commit -m "init"
+
+mkdir -p .skilled-reviews/.implementation
+cat > .skilled-reviews/.implementation/impl-guardrails.toml <<'TOML'
+write_allow = [
+  "hello.txt",
+]
+
+write_deny = [
+  ".skilled-reviews/**",
+  ".git/**",
+]
+TOML
+
+mkdir -p .skilled-reviews/.estimation
+cat > .skilled-reviews/.estimation/impl_smoke.md <<'MD'
+# impl smoke
+
+- Create `hello.txt` with `hello`.
+MD
+
+SOT='- none' ESTIMATION_FILE='.skilled-reviews/.estimation/impl_smoke.md' CODEX_BIN=true \
+  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" \
+  demo-scope --dry-run
+echo "exit=$?"
+
+test ! -e .skilled-reviews/.implementation/impl-runs
+```
+
+Expected:
+- Output includes `--dry-run: prerequisites OK`
+- `exit=0`
+
+## Evaluation 5: implementation REVIEW_FILE parsing (review → prompt wiring)
+
+Goal: Confirm `REVIEW_FILE` is accepted and parsed into a concise text summary (no codex required).
+
+```bash
+tmp="$(mktemp -d)"
+cd "$tmp"
+git init
+git config user.email test@example.com
+git config user.name test
+
+echo "hello" > a.txt
+git add a.txt
+git commit -m "init"
+
+mkdir -p .skilled-reviews/.implementation
+cat > .skilled-reviews/.implementation/impl-guardrails.toml <<'TOML'
+write_allow = [
+  "hello.txt",
+]
+
+write_deny = [
+  ".skilled-reviews/**",
+  ".git/**",
+]
+TOML
+
+mkdir -p .skilled-reviews/.estimation
+cat > .skilled-reviews/.estimation/impl_smoke.md <<'MD'
+# impl smoke
+
+- Create `hello.txt` with `hello`.
+MD
+
+cat > review.json <<'JSON'
+{
+  "facet": "Overall review (code-review)",
+  "facet_slug": "overall",
+  "status": "Blocked",
+  "findings": [
+    {
+      "severity": "blocker",
+      "issue": "example issue",
+      "evidence": "example evidence",
+      "impact": "example impact",
+      "fix_idea": "example fix idea"
+    }
+  ],
+  "uncertainty": [],
+  "questions": []
+}
+JSON
+
+python3 "$HOME/.codex/skills/implementation/scripts/extract_review_feedback.py" review.json
+
+SOT='- none' ESTIMATION_FILE='.skilled-reviews/.estimation/impl_smoke.md' REVIEW_FILE='review.json' CODEX_BIN=true \
+  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" \
+  demo-scope --dry-run
+echo "exit=$?"
+```
+
+Expected:
+- `extract_review_feedback.py` prints `Status: Blocked` and includes `example issue`
+- `run_implementation.sh --dry-run` returns `exit=0`

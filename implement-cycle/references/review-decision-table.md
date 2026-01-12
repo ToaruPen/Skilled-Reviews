@@ -28,4 +28,5 @@ Purpose: Deterministically select the review path in implement-cycle Step 6.
 - Example commands:
   - `git diff --numstat` to compute lines_changed and detect binary changes ("-").
   - `git diff --name-only` to compute files_changed and subsystems.
+- If you need to include untracked new files, stage them or use `git add -N <path>` before measuring; otherwise `git diff` will ignore them.
 - Record computed values in the review log or ticket as evidence.
