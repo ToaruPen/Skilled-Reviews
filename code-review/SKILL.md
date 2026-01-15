@@ -90,9 +90,10 @@ Tests: <what ran / not run>
 ## Optional JSON Output (review-cycle integration)
 
 - Path: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
-- Schema: `.skilled-reviews/.reviews/schemas/review-fragment.schema.json`
+- Schema: `.skilled-reviews/.reviews/schemas/review-v2.schema.json`
 - Use `facet="Overall review (code-review)"` and `facet_slug="overall"`
 - Generate via `codex exec --output-schema <schema> --output-last-message <path>` (JSON only)
+  - Includes P0–P3 via `priority` (0-3), repo-relative `code_location`, and `overall_correctness`.
 
 ## Scripts (optional)
 

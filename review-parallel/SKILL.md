@@ -46,7 +46,7 @@ Behavior:
 - Ensures schema files exist by running `ensure_review_schemas.sh` (creates `.skilled-reviews/.reviews/schemas/*.json` if missing)
 
 ## Output schema
-`.skilled-reviews/.reviews/schemas/review-fragment.schema.json` (JSON only; use [] for empty arrays).
+`.skilled-reviews/.reviews/schemas/review-v2.schema.json` (JSON only; use [] for empty arrays).
 
 ## Validation
 Run:

@@ -35,8 +35,7 @@ Source of truth: the script output (`Usage:` / `Optional env:`) is authoritative
 All review artifacts are written under the *target repository root* (the repo you are reviewing):
 
 - `.skilled-reviews/.reviews/schemas/`
-  - `review-fragment.schema.json`
-  - `pr-review.schema.json`
+  - `review-v2.schema.json`
 - `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
   - `diff-summary.txt` (from `review-parallel` by default, unless overridden)
   - `<facet-slug>.json` (`review-parallel` fragments)
@@ -236,8 +235,7 @@ python3 "$HOME/.codex/skills/implementation/scripts/validate_implementation_patc
 Creates schema files in the target repo if missing (does not overwrite).
 
 Files:
-- `.skilled-reviews/.reviews/schemas/review-fragment.schema.json`
-- `.skilled-reviews/.reviews/schemas/pr-review.schema.json`
+- `.skilled-reviews/.reviews/schemas/review-v2.schema.json`
 
 ## Troubleshooting
 

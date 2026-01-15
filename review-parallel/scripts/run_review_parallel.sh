@@ -78,7 +78,7 @@ exec_timeout_sec="${EXEC_TIMEOUT_SEC:-}"
 validate="${VALIDATE:-1}"
 format_json="${FORMAT_JSON:-1}"
 
-schema="${SCHEMA_PATH:-${repo_root}/.skilled-reviews/.reviews/schemas/review-fragment.schema.json}"
+schema="${SCHEMA_PATH:-${repo_root}/.skilled-reviews/.reviews/schemas/review-v2.schema.json}"
 codex_bin="${CODEX_BIN:-codex}"
 model="${MODEL:-gpt-5.2-codex}"
 effort="${REASONING_EFFORT:-high}"
@@ -310,6 +310,45 @@ for f in "${facets[@]}"; do
   {
     cat <<'PROMPT'
 Use review-parallel. Output JSON only using the schema.
+
+Review rules:
+- Focus only on the assigned facet.
+- Only flag issues the author would likely fix if aware:
+  - introduced by this diff (do not flag pre-existing issues)
+  - meaningful impact (correctness, security, performance, maintainability)
+  - discrete and actionable
+  - do not rely on unstated assumptions; avoid speculation; show concrete impact from the diff
+- Ignore trivial style unless it obscures meaning or violates documented standards.
+- If there are no clear issues worth fixing, output findings=[].
+
+Priority (numeric 0-3):
+- P0 (0): Drop everything to fix. Blocks release/ops/major usage. Universal (not input-dependent).
+- P1 (1): Urgent. Should be fixed next cycle.
+- P2 (2): Normal. Fix eventually.
+- P3 (3): Low. Nice to have.
+
+Status rules:
+- Blocked if any finding has priority 0 or 1.
+- Question if missing info prevents a correctness judgment (add to questions).
+- Approved if findings=[] and questions=[].
+- Approved with nits otherwise (only priority 2/3 findings).
+
+overall_correctness mapping:
+- Approved / Approved with nits => "patch is correct"
+- Blocked / Question => "patch is incorrect"
+
+Finding requirements:
+- title: prefix with "[P#] " and keep <= 120 chars
+- body: 1 paragraph Markdown; explain why it's a problem; keep it scannable
+- confidence_score: 0.0-1.0
+- priority: 0-3 (P0..P3)
+- facet: must match the "Facet:" line below
+- facet_slug: must match the "Facet-Slug:" line below
+- code_location.repo_relative_path: repo-relative (no absolute paths); strip leading "a/" or "b/" from diff paths
+- code_location.line_range: keep as short as possible (prefer <=10 lines) and overlap the diff
+- Do not include code blocks longer than 3 lines. Use ```suggestion blocks only for minimal replacement code.
+
+Always output valid JSON only (no markdown fences, no extra prose).
 PROMPT
     printf 'Facet: %s\n' "$name"
     printf 'Facet-Slug: %s\n' "$slug"
@@ -361,7 +400,7 @@ if [[ "$validate" != "0" ]]; then
     exit 1
   fi
   facets_csv="$(IFS=,; echo "${slugs[*]}")"
-  validate_cmd=(python3 "$script_dir/validate_review_fragments.py" "$scope_id" "$run_id" --facets "$facets_csv")
+  validate_cmd=(python3 "$script_dir/validate_review_fragments.py" "$scope_id" "$run_id" --facets "$facets_csv" --schema "$schema")
   if [[ "$format_json" != "0" ]]; then
     validate_cmd+=(--format)
   fi

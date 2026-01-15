@@ -73,6 +73,7 @@ Run-id must not be `.` or `..`.
 - `review-parallel` fragments: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/<facet-slug>.json`
 - `review-parallel` diff summary: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/diff-summary.txt`
 - `pr-review` aggregate: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/aggregate/pr-review.json`
+- Output schema (all JSON outputs): `.skilled-reviews/.reviews/schemas/review-v2.schema.json`
 
 ## Guardrails
 - Read-only review; no code edits.

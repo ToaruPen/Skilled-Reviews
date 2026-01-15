@@ -65,8 +65,13 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skills_root="$(cd "$script_dir/../.." && pwd)"
 ensure_script="${skills_root}/review-parallel/scripts/ensure_review_schemas.sh"
-if [[ ! -x "$ensure_script" ]]; then
-  echo "ensure_review_schemas.sh not found: $ensure_script" >&2
+alt="${skills_root}/review-parallel (impl)/scripts/ensure_review_schemas.sh"
+if [[ -x "$ensure_script" ]]; then
+  : # ok
+elif [[ -x "$alt" ]]; then
+  ensure_script="$alt"
+else
+  echo "ensure_review_schemas.sh not found: $ensure_script (or $alt)" >&2
   exit 1
 fi
 
@@ -78,7 +83,7 @@ exec_timeout_sec="${EXEC_TIMEOUT_SEC:-}"
 validate="${VALIDATE:-1}"
 format_json="${FORMAT_JSON:-1}"
 
-schema="${SCHEMA_PATH:-${repo_root}/.skilled-reviews/.reviews/schemas/review-fragment.schema.json}"
+schema="${SCHEMA_PATH:-${repo_root}/.skilled-reviews/.reviews/schemas/review-v2.schema.json}"
 codex_bin="${CODEX_BIN:-codex}"
 model="${MODEL:-gpt-5.2-codex}"
 effort="${REASONING_EFFORT:-xhigh}"
@@ -276,13 +281,46 @@ fi
 {
   cat <<'PROMPT'
 Use code-review. Output JSON only using the schema.
-Rules:
+
+Review rules:
+- Only flag issues the author would likely fix if aware:
+  - introduced by this diff (do not flag pre-existing issues)
+  - meaningful impact (correctness, security, performance, maintainability)
+  - discrete and actionable
+  - do not rely on unstated assumptions; avoid speculation; show concrete impact from the diff
+- Ignore trivial style unless it obscures meaning or violates documented standards.
+- If there are no clear issues worth fixing, output findings=[].
+
+Priority (numeric 0-3):
+- P0 (0): Drop everything to fix. Blocks release/ops/major usage. Universal (not input-dependent).
+- P1 (1): Urgent. Should be fixed next cycle.
+- P2 (2): Normal. Fix eventually.
+- P3 (3): Low. Nice to have.
+
+Status rules:
+- Blocked if any finding has priority 0 or 1.
+- Question if missing info prevents a correctness judgment (add to questions).
+- Approved if findings=[] and questions=[].
+- Approved with nits otherwise (only priority 2/3 findings).
+
+overall_correctness mapping:
+- Approved / Approved with nits => "patch is correct"
+- Blocked / Question => "patch is incorrect"
+
+Finding requirements:
+- title: prefix with "[P#] " and keep <= 120 chars
+- body: 1 paragraph Markdown; explain why it's a problem; keep it scannable
+- confidence_score: 0.0-1.0
+- priority: 0-3 (P0..P3)
+- code_location.repo_relative_path: repo-relative (no absolute paths); strip leading "a/" or "b/" from diff paths
+- code_location.line_range: keep as short as possible (prefer <=10 lines) and overlap the diff
+- Do not include code blocks longer than 3 lines. Use ```suggestion blocks only for minimal replacement code.
+
+Output rules:
 - facet must be "Overall review (code-review)"
 - facet_slug must be "overall"
-- status must be one of: Approved, Approved with nits, Blocked, Question
-- findings must be an array; use severity: blocker|major|minor|nit
-- if no findings, use []
-- if information is missing, set status Question and add to questions
+- questions and uncertainty must always be arrays (use [] when none)
+- Always output valid JSON only (no markdown fences, no extra prose).
 PROMPT
   printf 'Facet: Overall review (code-review)\n'
   printf 'Facet-Slug: overall\n'
@@ -313,191 +351,23 @@ if [[ "$validate" != "0" ]]; then
     echo "python3 not found (required for VALIDATE=1)" >&2
     exit 1
   fi
-  (cd "$repo_root" && python3 - "$out" "$schema" "$format_json" <<'PY'
-import json
-import os
-import sys
 
-path = sys.argv[1]
-schema_path = sys.argv[2]
-format_json = sys.argv[3] != "0"
+  validate_script="${skills_root}/review-parallel/scripts/validate_review_fragments.py"
+  alt_validate="${skills_root}/review-parallel (impl)/scripts/validate_review_fragments.py"
+  if [[ -f "$alt_validate" ]]; then
+    validate_script="$alt_validate"
+  fi
+  if [[ ! -f "$validate_script" ]]; then
+    echo "validate_review_fragments.py not found: $validate_script" >&2
+    exit 1
+  fi
 
-STATUS_ALLOWED = {"Approved", "Approved with nits", "Blocked", "Question"}
-SEVERITY_ALLOWED = {"blocker", "major", "minor", "nit"}
-REQUIRED = {"facet", "facet_slug", "status", "findings", "uncertainty", "questions"}
-F_REQUIRED = {"severity", "issue", "evidence", "impact", "fix_idea"}
+  format_arg=()
+  if [[ "$format_json" != "0" ]]; then
+    format_arg+=(--format)
+  fi
 
-KEY_ORDER = ["facet", "facet_slug", "status", "findings", "uncertainty", "questions"]
-F_KEY_ORDER = ["severity", "issue", "evidence", "impact", "fix_idea"]
-
-
-def validate_schema(schema):
-    errors = []
-    if not isinstance(schema, dict):
-        return ["schema root is not an object"]
-    if schema.get("type") != "object":
-        errors.append("schema.type must be 'object'")
-    if schema.get("additionalProperties") is not False:
-        errors.append("schema.additionalProperties must be false")
-    required = schema.get("required")
-    if not isinstance(required, list) or set(required) != REQUIRED:
-        errors.append(f"schema.required must be {sorted(REQUIRED)}")
-    props = schema.get("properties")
-    if not isinstance(props, dict):
-        errors.append("schema.properties must be an object")
-        return errors
-    status = props.get("status")
-    status_enum = status.get("enum") if isinstance(status, dict) else None
-    if not isinstance(status_enum, list) or set(status_enum) != STATUS_ALLOWED:
-        errors.append(f"schema.properties.status.enum must be {sorted(STATUS_ALLOWED)}")
-    findings = props.get("findings")
-    if not isinstance(findings, dict) or findings.get("type") != "array":
-        errors.append("schema.properties.findings must be an array")
-        return errors
-    items = findings.get("items")
-    if not isinstance(items, dict) or items.get("type") != "object":
-        errors.append("schema.properties.findings.items must be an object schema")
-        return errors
-    if items.get("additionalProperties") is not False:
-        errors.append("schema.properties.findings.items.additionalProperties must be false")
-    f_required = items.get("required")
-    if not isinstance(f_required, list) or set(f_required) != F_REQUIRED:
-        errors.append(f"schema.properties.findings.items.required must be {sorted(F_REQUIRED)}")
-    item_props = items.get("properties")
-    if not isinstance(item_props, dict):
-        errors.append("schema.properties.findings.items.properties must be an object")
-        return errors
-    severity = item_props.get("severity")
-    severity_enum = severity.get("enum") if isinstance(severity, dict) else None
-    if not isinstance(severity_enum, list) or set(severity_enum) != SEVERITY_ALLOWED:
-        errors.append(
-            f"schema.properties.findings.items.properties.severity.enum must be {sorted(SEVERITY_ALLOWED)}"
-        )
-    return errors
-
-
-def normalize_fragment(obj: dict) -> dict:
-    ordered: dict = {}
-    for key in KEY_ORDER:
-        if key in obj:
-            ordered[key] = obj[key]
-
-    findings = ordered.get("findings")
-    if isinstance(findings, list):
-        normalized_findings = []
-        for item in findings:
-            if not isinstance(item, dict):
-                normalized_findings.append(item)
-                continue
-            f_ordered: dict = {}
-            for key in F_KEY_ORDER:
-                if key in item:
-                    f_ordered[key] = item[key]
-            for key, value in item.items():
-                if key not in f_ordered:
-                    f_ordered[key] = value
-            normalized_findings.append(f_ordered)
-        ordered["findings"] = normalized_findings
-
-    for key, value in obj.items():
-        if key not in ordered:
-            ordered[key] = value
-
-    return ordered
-
-
-def validate_fragment(obj, expected_slug):
-    errors = []
-    if not isinstance(obj, dict):
-        return ["root is not an object"]
-
-    missing = REQUIRED - set(obj.keys())
-    if missing:
-        errors.append(f"missing keys: {sorted(missing)}")
-    extra = set(obj.keys()) - REQUIRED
-    if extra:
-        errors.append(f"unexpected keys: {sorted(extra)}")
-
-    facet = obj.get("facet")
-    facet_slug = obj.get("facet_slug")
-    status = obj.get("status")
-    findings = obj.get("findings")
-    uncertainty = obj.get("uncertainty")
-    questions = obj.get("questions")
-
-    if facet != "Overall review (code-review)":
-        errors.append('facet must be "Overall review (code-review)"')
-    if facet_slug != expected_slug:
-        errors.append(f"facet_slug mismatch: expected {expected_slug}, got {facet_slug}")
-    if status not in STATUS_ALLOWED:
-        errors.append(f"status must be one of {sorted(STATUS_ALLOWED)}")
-
-    if not isinstance(findings, list):
-        errors.append("findings must be an array")
-    else:
-        for idx, item in enumerate(findings):
-            if not isinstance(item, dict):
-                errors.append(f"findings[{idx}] is not an object")
-                continue
-            f_missing = F_REQUIRED - set(item.keys())
-            if f_missing:
-                errors.append(f"findings[{idx}] missing keys: {sorted(f_missing)}")
-            f_extra = set(item.keys()) - F_REQUIRED
-            if f_extra:
-                errors.append(f"findings[{idx}] unexpected keys: {sorted(f_extra)}")
-            severity = item.get("severity")
-            if severity not in SEVERITY_ALLOWED:
-                errors.append(
-                    f"findings[{idx}].severity must be one of {sorted(SEVERITY_ALLOWED)}"
-                )
-            for key in ("issue", "evidence", "impact", "fix_idea"):
-                if key in item and not isinstance(item[key], str):
-                    errors.append(f"findings[{idx}].{key} must be a string")
-
-    if not isinstance(uncertainty, list) or any(not isinstance(x, str) for x in uncertainty):
-        errors.append("uncertainty must be an array of strings")
-    if not isinstance(questions, list) or any(not isinstance(x, str) for x in questions):
-        errors.append("questions must be an array of strings")
-
-    return errors
-
-
-try:
-    with open(schema_path, "r", encoding="utf-8") as fh:
-        schema_doc = json.load(fh)
-except Exception as exc:
-    print(f"schema invalid JSON: {exc}", file=sys.stderr)
-    raise SystemExit(1)
-
-schema_errors = validate_schema(schema_doc)
-if schema_errors:
-    print("schema mismatch (update schema generator and/or validator):", file=sys.stderr)
-    for err in schema_errors:
-        print(f"  - {err}", file=sys.stderr)
-    raise SystemExit(1)
-
-try:
-    with open(path, "r", encoding="utf-8") as fh:
-        data = json.load(fh)
-except Exception as exc:
-    print(f"invalid JSON: {exc}", file=sys.stderr)
-    raise SystemExit(1)
-
-errors = validate_fragment(data, "overall")
-if errors:
-    print("invalid fragment:", file=sys.stderr)
-    for err in errors:
-        print(f"  - {err}", file=sys.stderr)
-    raise SystemExit(1)
-
-if format_json:
-    tmp = f"{path}.tmp.{os.getpid()}"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(normalize_fragment(data), fh, ensure_ascii=False, indent=2)
-        fh.write("\n")
-    os.replace(tmp, path)
-PY
-)
+  (cd "$repo_root" && python3 "$validate_script" "$scope_id" "$run_id" --facets "" --schema "$schema" --extra-file "$out" --extra-slug "overall" "${format_arg[@]}")
 fi
 
 tmp_run_file="${run_id_file}.tmp"

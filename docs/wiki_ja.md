@@ -35,8 +35,7 @@ English: `docs/wiki_en.md`
 全てのレビュー成果物は「レビュー対象リポジトリ」のルート配下に書き込みます:
 
 - `.skilled-reviews/.reviews/schemas/`
-  - `review-fragment.schema.json`
-  - `pr-review.schema.json`
+  - `review-v2.schema.json`
 - `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/`
   - `diff-summary.txt`（通常は `review-parallel` が生成。上書き指定も可）
   - `<facet-slug>.json`（`review-parallel` のフラグメント）
@@ -236,8 +235,7 @@ python3 "$HOME/.codex/skills/implementation/scripts/validate_implementation_patc
 対象リポジトリにスキーマが無ければ生成します（既存は上書きしません）。
 
 生成物:
-- `.skilled-reviews/.reviews/schemas/review-fragment.schema.json`
-- `.skilled-reviews/.reviews/schemas/pr-review.schema.json`
+- `.skilled-reviews/.reviews/schemas/review-v2.schema.json`
 
 ## 典型トラブル
 

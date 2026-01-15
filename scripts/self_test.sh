@@ -117,8 +117,10 @@ if [[ -n "$slug" ]]; then
   facet="$slug"
   if [[ "$slug" == "overall" ]]; then
     facet="Overall review (code-review)"
+  elif [[ "$slug" == "aggregate" ]]; then
+    facet="PR-level aggregate"
   fi
-  printf '{"facet":"%s","facet_slug":"%s","status":"Approved","findings":[],"uncertainty":[],"questions":[]}\n' "$facet" "$slug" > "$out"
+  printf '{"schema_version":2,"facet":"%s","facet_slug":"%s","status":"Approved","findings":[],"questions":[],"uncertainty":[],"overall_correctness":"patch is correct","overall_explanation":"stub","overall_confidence_score":1}\n' "$facet" "$slug" > "$out"
   exit 0
 fi
 
@@ -128,7 +130,7 @@ if [[ -z "$scope" ]]; then
 fi
 
 cat >"$out" <<JSON
-{"scope_id":"$scope","status":"Approved with nits","top_risks":[],"required_fixes":[],"optional_nits":["stub output"],"assumptions":[],"questions":[],"facet_coverage":[{"facet_slug":"correctness","status":"Approved"},{"facet_slug":"edge-cases","status":"Approved"},{"facet_slug":"security","status":"Approved"},{"facet_slug":"performance","status":"Approved"},{"facet_slug":"tests-observability","status":"Approved"},{"facet_slug":"design-consistency","status":"Approved"}]}
+{"schema_version":2,"scope_id":"$scope","facet":"PR-level aggregate","facet_slug":"aggregate","status":"Approved","findings":[],"questions":[],"uncertainty":[],"overall_correctness":"patch is correct","overall_explanation":"stub output","overall_confidence_score":1}
 JSON
 SH
 chmod +x "$fake_codex"
@@ -167,20 +169,30 @@ echo "[3.0/3] implementation review-feedback wiring test (stub codex)" >&2
 
 cat > review.json <<'JSON'
 {
+  "schema_version": 2,
   "facet": "Overall review (code-review)",
   "facet_slug": "overall",
   "status": "Blocked",
+  "overall_correctness": "patch is incorrect",
+  "overall_explanation": "stub overall explanation",
+  "overall_confidence_score": 1.0,
   "findings": [
     {
-      "severity": "blocker",
-      "issue": "MARKER_REVIEW_ISSUE",
-      "evidence": "stub evidence",
-      "impact": "stub impact",
-      "fix_idea": "stub fix idea"
+      "title": "[P0] MARKER_REVIEW_ISSUE",
+      "body": "stub body",
+      "confidence_score": 1.0,
+      "priority": 0,
+      "code_location": {
+        "repo_relative_path": "a.txt",
+        "line_range": {
+          "start": 1,
+          "end": 1
+        }
+      }
     }
   ],
-  "uncertainty": [],
-  "questions": []
+  "questions": [],
+  "uncertainty": []
 }
 JSON
 
