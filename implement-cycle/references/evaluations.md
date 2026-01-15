@@ -162,20 +162,30 @@ MD
 
 cat > review.json <<'JSON'
 {
+  "schema_version": 2,
   "facet": "Overall review (code-review)",
   "facet_slug": "overall",
   "status": "Blocked",
   "findings": [
     {
-      "severity": "blocker",
-      "issue": "example issue",
-      "evidence": "example evidence",
-      "impact": "example impact",
-      "fix_idea": "example fix idea"
+      "title": "[P0] example issue",
+      "body": "example body",
+      "confidence_score": 1.0,
+      "priority": 0,
+      "code_location": {
+        "repo_relative_path": "a.txt",
+        "line_range": {
+          "start": 1,
+          "end": 1
+        }
+      }
     }
   ],
+  "questions": [],
   "uncertainty": [],
-  "questions": []
+  "overall_correctness": "patch is incorrect",
+  "overall_explanation": "example overall explanation",
+  "overall_confidence_score": 1.0
 }
 JSON
 

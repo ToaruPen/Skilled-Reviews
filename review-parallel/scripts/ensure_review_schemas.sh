@@ -22,8 +22,8 @@ write_schema() {
   echo "Generated schema: $path" >&2
 }
 
-review_fragment_path="${schema_dir}/review-fragment.schema.json"
-if [[ ! -f "$review_fragment_path" ]]; then
+review_v2_path="${schema_dir}/review-v2.schema.json"
+if [[ ! -f "$review_v2_path" ]]; then
   content='{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
@@ -33,10 +33,23 @@ if [[ ! -f "$review_fragment_path" ]]; then
     "facet_slug",
     "status",
     "findings",
+    "questions",
     "uncertainty",
-    "questions"
+    "overall_correctness",
+    "overall_explanation",
+    "overall_confidence_score"
   ],
   "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [
+        2
+      ]
+    },
+    "scope_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "facet": {
       "type": "string",
       "minLength": 1
@@ -60,35 +73,71 @@ if [[ ! -f "$review_fragment_path" ]]; then
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "severity",
-          "issue",
-          "evidence",
-          "impact",
-          "fix_idea"
+          "title",
+          "body",
+          "confidence_score",
+          "priority",
+          "code_location"
         ],
         "properties": {
-          "severity": {
+          "title": {
             "type": "string",
-            "enum": [
-              "blocker",
-              "major",
-              "minor",
-              "nit"
-            ]
+            "minLength": 1,
+            "maxLength": 120
           },
-          "issue": {
-            "type": "string"
+          "body": {
+            "type": "string",
+            "minLength": 1
           },
-          "evidence": {
-            "type": "string"
+          "confidence_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           },
-          "impact": {
-            "type": "string"
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
           },
-          "fix_idea": {
-            "type": "string"
+          "code_location": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "repo_relative_path",
+              "line_range"
+            ],
+            "properties": {
+              "repo_relative_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line_range": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "properties": {
+                  "start": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "end": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
           }
         }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
     "uncertainty": {
@@ -97,121 +146,23 @@ if [[ ! -f "$review_fragment_path" ]]; then
         "type": "string"
       }
     },
-    "questions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
-  }
-}'
-  write_schema "$review_fragment_path" <<<"$content"
-fi
-
-pr_review_path="${schema_dir}/pr-review.schema.json"
-if [[ ! -f "$pr_review_path" ]]; then
-  content='{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "scope_id",
-    "status",
-    "top_risks",
-    "required_fixes",
-    "optional_nits",
-    "assumptions",
-    "questions",
-    "facet_coverage"
-  ],
-  "properties": {
-    "scope_id": {
+    "overall_correctness": {
+      "type": "string",
+      "enum": [
+        "patch is correct",
+        "patch is incorrect"
+      ]
+    },
+    "overall_explanation": {
       "type": "string",
       "minLength": 1
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "Approved",
-        "Approved with nits",
-        "Blocked",
-        "Question"
-      ]
-    },
-    "top_risks": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "required_fixes": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "issue",
-          "evidence",
-          "fix_idea"
-        ],
-        "properties": {
-          "issue": {
-            "type": "string"
-          },
-          "evidence": {
-            "type": "string"
-          },
-          "fix_idea": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "optional_nits": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "assumptions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "questions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "facet_coverage": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "facet_slug",
-          "status"
-        ],
-        "properties": {
-          "facet_slug": {
-            "type": "string",
-            "minLength": 1
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "Approved",
-              "Approved with nits",
-              "Blocked",
-              "Question"
-            ]
-          }
-        }
-      }
+    "overall_confidence_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     }
   }
 }'
-  write_schema "$pr_review_path" <<<"$content"
+  write_schema "$review_v2_path" <<<"$content"
 fi

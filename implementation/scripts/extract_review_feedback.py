@@ -52,27 +52,79 @@ def _format_review_fragment(obj: dict[str, Any], *, max_findings: int) -> list[s
     if status:
         lines.append(f"Status: {status}")
 
+    overall_correctness = _as_str(obj.get("overall_correctness")).strip()
+    overall_explanation = _as_str(obj.get("overall_explanation")).strip()
+    overall_confidence_score = obj.get("overall_confidence_score")
+    if overall_correctness:
+        if isinstance(overall_confidence_score, (int, float)):
+            lines.append(
+                f"Overall: {overall_correctness} (confidence={float(overall_confidence_score):.2f})"
+            )
+        else:
+            lines.append(f"Overall: {overall_correctness}")
+    if overall_explanation:
+        lines.append(f"Overall explanation: {_clip(overall_explanation, max_chars=360)}")
+
     findings = obj.get("findings") or []
     if isinstance(findings, list) and findings:
-        lines.append("Findings (prioritize blocker/major; ignore nits unless needed):")
+        lines.append("Findings (prioritize P0/P1 or blocker/major; ignore nits unless needed):")
         for finding in findings[:max_findings]:
             if not isinstance(finding, dict):
                 continue
-            severity = _as_str(finding.get("severity")).strip()
-            issue = _clip(_as_str(finding.get("issue")), max_chars=240)
-            if not issue:
-                continue
-            prefix = f"- [{severity}] " if severity else "- "
-            lines.append(f"{prefix}{issue}")
-            fix_idea = _clip(_as_str(finding.get("fix_idea")), max_chars=360)
-            evidence = _clip(_as_str(finding.get("evidence")), max_chars=360)
-            impact = _clip(_as_str(finding.get("impact")), max_chars=240)
-            if fix_idea:
-                lines.append(f"  fix_idea: {fix_idea}")
-            if evidence:
-                lines.append(f"  evidence: {evidence}")
-            if impact:
-                lines.append(f"  impact: {impact}")
+
+            if "title" in finding or "priority" in finding or "code_location" in finding:
+                title = _clip(_as_str(finding.get("title")), max_chars=240)
+                if not title:
+                    continue
+
+                priority = finding.get("priority")
+                priority_s = ""
+                if isinstance(priority, int) and 0 <= priority <= 3:
+                    priority_s = f"P{priority}"
+
+                location = ""
+                code_location = finding.get("code_location")
+                if isinstance(code_location, dict):
+                    repo_relative_path = _as_str(code_location.get("repo_relative_path")).strip()
+                    line_range = code_location.get("line_range")
+                    if repo_relative_path:
+                        if isinstance(line_range, dict):
+                            start = line_range.get("start")
+                            end = line_range.get("end")
+                            if isinstance(start, int) and isinstance(end, int):
+                                location = f"{repo_relative_path}:{start}-{end}"
+                            else:
+                                location = repo_relative_path
+                        else:
+                            location = repo_relative_path
+
+                prefix = f"- [{priority_s}] " if priority_s else "- "
+                suffix = f" ({location})" if location else ""
+                lines.append(f"{prefix}{title}{suffix}")
+
+                confidence_score = finding.get("confidence_score")
+                if isinstance(confidence_score, (int, float)):
+                    lines.append(f"  confidence_score: {float(confidence_score):.2f}")
+
+                body = _as_str(finding.get("body")).strip()
+                if body:
+                    lines.append(f"  body: {_clip(body, max_chars=480)}")
+            else:
+                severity = _as_str(finding.get("severity")).strip()
+                issue = _clip(_as_str(finding.get("issue")), max_chars=240)
+                if not issue:
+                    continue
+                prefix = f"- [{severity}] " if severity else "- "
+                lines.append(f"{prefix}{issue}")
+                fix_idea = _clip(_as_str(finding.get("fix_idea")), max_chars=360)
+                evidence = _clip(_as_str(finding.get("evidence")), max_chars=360)
+                impact = _clip(_as_str(finding.get("impact")), max_chars=240)
+                if fix_idea:
+                    lines.append(f"  fix_idea: {fix_idea}")
+                if evidence:
+                    lines.append(f"  evidence: {evidence}")
+                if impact:
+                    lines.append(f"  impact: {impact}")
         if len(findings) > max_findings:
             lines.append(f"...(truncated: {len(findings) - max_findings} more findings)")
 
@@ -181,4 +233,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
