@@ -69,6 +69,12 @@ if [[ ! -x "$ensure_script" ]]; then
   exit 1
 fi
 
+policy_file="${script_dir}/review-v2-policy.md"
+if [[ ! -f "$policy_file" ]]; then
+  echo "review-v2-policy.md not found: $policy_file" >&2
+  exit 1
+fi
+
 constraints="${CONSTRAINTS:-none}"
 diff_file="${DIFF_FILE:-}"
 diff_mode="${DIFF_MODE:-auto}"
@@ -320,28 +326,12 @@ Review rules:
   - do not rely on unstated assumptions; avoid speculation; show concrete impact from the diff
 - Ignore trivial style unless it obscures meaning or violates documented standards.
 - If there are no clear issues worth fixing, output findings=[].
-
-Priority (numeric 0-3):
-- P0 (0): Drop everything to fix. Blocks release/ops/major usage. Universal (not input-dependent).
-- P1 (1): Urgent. Should be fixed next cycle.
-- P2 (2): Normal. Fix eventually.
-- P3 (3): Low. Nice to have.
-
-Status rules:
-- Blocked if any finding has priority 0 or 1.
-- Question if missing info prevents a correctness judgment (add to questions).
-- Approved if findings=[] and questions=[].
-- Approved with nits otherwise (only priority 2/3 findings).
-
-overall_correctness mapping:
-- Approved / Approved with nits => "patch is correct"
-- Blocked / Question => "patch is incorrect"
-
-Finding requirements:
-- title: prefix with "[P#] " and keep <= 120 chars
+PROMPT
+    cat "$policy_file"
+    cat <<'PROMPT'
+Finding requirements (additional):
 - body: 1 paragraph Markdown; explain why it's a problem; keep it scannable
 - confidence_score: 0.0-1.0
-- priority: 0-3 (P0..P3)
 - facet: must match the "Facet:" line below
 - facet_slug: must match the "Facet-Slug:" line below
 - code_location.repo_relative_path: repo-relative (no absolute paths); strip leading "a/" or "b/" from diff paths

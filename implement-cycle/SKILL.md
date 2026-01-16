@@ -40,7 +40,7 @@ Run a repeatable, safe implementation loop for a single ticket/issue with clear 
        - Ensure the target repo has a repo-local policy at `.skilled-reviews/.implementation/impl-guardrails.toml` (recommended to gitignore).
        - Optionally preflight with `--dry-run` (checks inputs; no patch generation).
        - Run (from the target repo root):
-         `SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id]`
+         `SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" <scope-id> [run-id]`
        - If you only want patch generation/validation (no apply), set `APPLY=0`.
      - Manual: edit files directly in the repo, following project rules.
    - Make the smallest change set that satisfies acceptance criteria.

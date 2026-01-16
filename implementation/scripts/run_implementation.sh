@@ -185,6 +185,11 @@ mkdir -p "$run_dir"
 review_feedback=""
 if [[ -n "$review_file" ]]; then
   review_feedback="$(python3 "$review_extractor" "$review_file")"
+  if ! grep -q '[^[:space:]]' <<<"$review_feedback"; then
+    echo "Review feedback extractor returned empty output for: $review_file" >&2
+    echo "Fail-closed: REVIEW_FILE is set but extracted guidance is empty." >&2
+    exit 1
+  fi
 fi
 
 {
@@ -211,20 +216,28 @@ Hard rules (v1, fail-closed by wrapper checks):
 - Follow repository rules (AGENTS.md/CONTRIBUTING/docs).
 - Do not modify documentation unless explicitly required AND allowed by the guardrails policy.
 
+Review follow-up rules (only when a review file is provided in Context):
+- You MUST read the review JSON file itself (review-v2) at the provided path.
+- Treat the review JSON as the source of truth. The parsed feedback is convenience-only.
+- You MUST fix all findings with priority 0 or 1 (P0/P1). Do not ignore or defer them.
+- Only address P2/P3 if required to fix P0/P1 or trivial and clearly safe.
+- If any P0/P1 cannot be fixed within guardrails/constraints or due to missing information, output QUESTION explaining why.
+
 Context:
 PROMPT
   printf 'SoT: %s\n' "$sot"
   printf 'Estimation file: %s\n' "$estimation_file"
-  if [[ -n "$plan_file" ]]; then
-    printf 'Plan file: %s\n' "$plan_file"
-  fi
-  if [[ -n "$review_file" ]]; then
-    printf 'Review feedback file: %s\n' "$review_file"
-    printf 'Review feedback (parsed; prioritize required fixes, ignore nits unless needed):\n%s\n' "$review_feedback"
-  fi
-  if [[ -n "$clarifications" ]]; then
-    printf 'Clarifications:\n%s\n' "$clarifications"
-  fi
+	  if [[ -n "$plan_file" ]]; then
+	    printf 'Plan file: %s\n' "$plan_file"
+	  fi
+	  if [[ -n "$review_file" ]]; then
+	    printf 'Review file (review-v2 JSON; MUST READ): %s\n' "$review_file"
+	    printf 'Review feedback summary (parsed; convenience only):\n%s\n' "$review_feedback"
+	    printf 'Note: review JSON is not inlined; read the file at the path above.\n'
+	  fi
+	  if [[ -n "$clarifications" ]]; then
+	    printf 'Clarifications:\n%s\n' "$clarifications"
+	  fi
   printf 'Constraints: %s\n' "$constraints"
   printf 'Guardrails policy file: %s\n' "$policy_file"
   printf 'Guardrails policy (read-only):\n'

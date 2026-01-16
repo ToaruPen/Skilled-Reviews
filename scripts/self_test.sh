@@ -16,8 +16,23 @@ echo "[1.5/3] install.sh dry-run" >&2
 bash "$repo_root/scripts/install.sh" --dry-run >/dev/null
 bash "$repo_root/scripts/install.sh" --dry-run --link >/dev/null
 
+echo "[1.6/3] drift checks" >&2
+if ! cmp -s "$repo_root/code-review/scripts/ensure_review_schemas.sh" "$repo_root/review-parallel/scripts/ensure_review_schemas.sh"; then
+  echo "ERROR: drift detected: ensure_review_schemas.sh (code-review vs review-parallel)" >&2
+  exit 1
+fi
+if ! cmp -s "$repo_root/code-review/scripts/review-v2-policy.md" "$repo_root/review-parallel/scripts/review-v2-policy.md"; then
+  echo "ERROR: drift detected: review-v2-policy.md (code-review vs review-parallel)" >&2
+  exit 1
+fi
+if ! cmp -s "$repo_root/code-review/scripts/validate_review_fragments.py" "$repo_root/review-parallel/scripts/validate_review_fragments.py"; then
+  echo "ERROR: drift detected: validate_review_fragments.py (code-review vs review-parallel)" >&2
+  exit 1
+fi
+
 echo "[2/3] python syntax checks" >&2
 python3 -m py_compile "$repo_root/review-parallel/scripts/validate_review_fragments.py"
+python3 -m py_compile "$repo_root/code-review/scripts/validate_review_fragments.py"
 python3 -m py_compile "$repo_root/implementation/scripts/validate_implementation_patch.py"
 python3 -m py_compile "$repo_root/implementation/scripts/extract_review_feedback.py"
 

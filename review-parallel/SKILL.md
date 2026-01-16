@@ -24,7 +24,7 @@ Create focused review fragments per facet for a single diff. Output JSON only; d
 
 ## Script (run from repo root)
 Run:
-`SOT="..." TESTS="..." "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]`
+`SOT="..." TESTS="..." "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]`
 Scope-id must match `[A-Za-z0-9._-]+`.
 Scope-id must not be `.` or `..`.
 Run-id must match `[A-Za-z0-9._-]+`.
@@ -50,7 +50,7 @@ Behavior:
 
 ## Validation
 Run:
-`python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" <scope-id> [run-id] [--format]`
+`python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" <scope-id> [run-id] [--format]`
 - `--format` rewrites validated JSON files with pretty formatting.
 
 ## Rules

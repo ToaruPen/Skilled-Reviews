@@ -12,11 +12,13 @@ Codex CLI の `impl`（`implement-cycle` の alias）と、review 関連スキ�
 ## 含まれるスキル
 
 - `impl`（alias）
+- `impl-np`
 - `implement-cycle`
-- `implementation`
-- `review-cycle`
-- `review-parallel`
-- `code-review`
+- `implement-cycle (no-parallel)`
+- `implementation (impl)`
+- `review-cycle (impl)`
+- `review-parallel (impl)`
+- `code-review (impl, single-review)`
 - `pr-review`
 
 ## 前提
@@ -40,7 +42,7 @@ Codex CLI の `impl`（`implement-cycle` の alias）と、review 関連スキ�
 export SOT='- <rules/specs/ticket>'
 export TESTS='- <ran / not run>'
 
-"$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope --dry-run
+"$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope --dry-run
 ```
 
 ## 主なオプション（Key options）

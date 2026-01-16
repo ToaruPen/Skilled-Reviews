@@ -59,13 +59,15 @@ if [[ -z "$dest_skills" ]]; then
 fi
 
 skills=(
-  "impl"
-  "implement-cycle"
-  "implementation"
-  "review-cycle"
-  "review-parallel"
-  "code-review"
-  "pr-review"
+  "impl:impl"
+  "impl-np:impl-np"
+  "implement-cycle:implement-cycle"
+  "implement-cycle (no-parallel):implement-cycle (no-parallel)"
+  "implementation:implementation (impl)"
+  "review-cycle:review-cycle (impl)"
+  "review-parallel:review-parallel (impl)"
+  "code-review:code-review (impl, single-review)"
+  "pr-review:pr-review"
 )
 
 if [[ "$dry_run" == "1" ]]; then
@@ -74,8 +76,18 @@ if [[ "$dry_run" == "1" ]]; then
   printf -- "- dest_skills: %s\n" "$dest_skills" >&2
   printf -- "- link_mode: %s\n" "$link_mode" >&2
   printf -- "- skills:\n" >&2
-  for s in "${skills[@]}"; do
-    printf -- "  - %s\n" "$s" >&2
+  for pair in "${skills[@]}"; do
+    src_name="${pair%%:*}"
+    dst_name="${pair#*:}"
+    printf -- "  - %s -> %s\n" "$src_name" "$dst_name" >&2
+  done
+  for pair in "${skills[@]}"; do
+    src_name="${pair%%:*}"
+    src="${repo_root}/${src_name}"
+    if [[ ! -d "$src" ]]; then
+      echo "ERROR: Source skill dir not found: $src" >&2
+      exit 1
+    fi
   done
   exit 0
 fi
@@ -83,9 +95,11 @@ fi
 mkdir -p "$dest_skills"
 
 if [[ "$link_mode" == "1" ]]; then
-  for s in "${skills[@]}"; do
-    src="${repo_root}/${s}"
-    dst="${dest_skills}/${s}"
+  for pair in "${skills[@]}"; do
+    src_name="${pair%%:*}"
+    dst_name="${pair#*:}"
+    src="${repo_root}/${src_name}"
+    dst="${dest_skills}/${dst_name}"
     if [[ ! -d "$src" ]]; then
       echo "Source skill dir not found: $src" >&2
       exit 1
@@ -115,10 +129,12 @@ rsync_flags=(
 )
 
 for s in "${skills[@]}"; do
-  src="${repo_root}/${s}/"
-  dst="${dest_skills}/${s}/"
-  if [[ ! -d "${repo_root}/${s}" ]]; then
-    echo "Source skill dir not found: ${repo_root}/${s}" >&2
+  src_name="${s%%:*}"
+  dst_name="${s#*:}"
+  src="${repo_root}/${src_name}/"
+  dst="${dest_skills}/${dst_name}/"
+  if [[ ! -d "${repo_root}/${src_name}" ]]; then
+    echo "Source skill dir not found: ${repo_root}/${src_name}" >&2
     exit 1
   fi
   mkdir -p "$dst"

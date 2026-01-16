@@ -71,7 +71,7 @@ export SOT='- <ticket/spec/rules>'
 export TESTS='- <ran / not run>'
 
 # `review-parallel`: parallel facets (writes fragments + diff summary)
-"$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
+"$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
 
 # `pr-review`: aggregate (uses diff summary + fragments only)
 bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
@@ -83,7 +83,7 @@ Patch-based implementation (requires repo-local guardrails in the target repo):
 export SOT='- <ticket/spec/rules>'
 export ESTIMATION_FILE='.skilled-reviews/.estimation/YYYY/MM/<scope>.md'
 
-"$HOME/.codex/skills/implementation/scripts/run_implementation.sh" demo-scope --dry-run
+"$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" demo-scope --dry-run
 ```
 
 ## Defaults and customization
@@ -100,7 +100,7 @@ Example:
 
 ```bash
 MODEL=gpt-5.2-codex REASONING_EFFORT=high \
-  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
+  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
 ```
 
 Notes:
@@ -117,7 +117,7 @@ Run:
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 Args:
@@ -151,7 +151,7 @@ Validates fragment JSONs in a run, and can rewrite them with pretty formatting.
 Run:
 
 ```bash
-python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" \
+python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" \
   <scope-id> [run-id] --format
 ```
 
@@ -169,7 +169,7 @@ Run:
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/code-review (impl, single-review)/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 Notes:
@@ -210,7 +210,7 @@ Run (from the target repo root):
 
 ```bash
 SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." \
-  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 Notes:
@@ -226,7 +226,7 @@ Validates a patch against the guardrails policy (and `git apply --check`).
 Run (from the target repo root):
 
 ```bash
-python3 "$HOME/.codex/skills/implementation/scripts/validate_implementation_patch.py" \
+python3 "$HOME/.codex/skills/implementation (impl)/scripts/validate_implementation_patch.py" \
   --repo-root . --patch <patch.diff> --policy .skilled-reviews/.implementation/impl-guardrails.toml
 ```
 

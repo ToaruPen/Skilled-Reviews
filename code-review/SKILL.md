@@ -9,6 +9,7 @@ description: >-
 ## Overview
 
 Quickly surface risk in this order: safety → requirement alignment → correctness → tests → security → maintainability.
+Default output: P0–P3 prioritized findings + `review-v2` JSON (status derived from findings).
 Designed for lightweight reviews (manual execution is OK; allows reviewer judgment). For deterministic workflows, use `review-cycle`.
 If you run both, treat `review-cycle` as the final decision and `code-review` as supplemental.
 Can be used standalone.
@@ -18,7 +19,7 @@ Can be used standalone.
 1. Confirm required inputs (diff/SoT/expectations/tests). If missing, stop and ask.
 2. Understand the change set and impact areas (API/DB/auth/billing/crypto/infra, etc.).
 3. Apply guardrails (Blocked/Question).
-   - If you must force a strict output format, do not depend on subcommands; pipe the diff and prompt directly into `codex exec`.
+   - If you must force a strict output format, use `--output-schema` + JSON-only output; do not depend on subcommands.
 4. Run the repo’s standard verification commands when possible.
 5. Organize findings using the review focus facets.
 6. Provide a conclusion and next actions using the output template.
@@ -54,7 +55,7 @@ Reviewing unstaged changes is allowed.
 
 ```
 Please review the current changes.
-Provide Status: Blocked | Approved | Approved with nits | Question, with Blockers/Questions/Plan/Notes/Evidence.
+Provide Status + P0–P3 findings + Questions/Plan/Notes/Evidence, and emit a `review-v2` JSON artifact.
 
 Diff: <paste or specify how to obtain>
 SoT: <ticket/docs>
@@ -68,6 +69,11 @@ Tests: <what ran / not run>
 - Suspected violations (forbidden areas/ownership boundaries/data handling/licenses, etc.) → Blocked (use Question if not sure)
 - Spec is ambiguous/undefined/contradictory → Question (briefly state disputes/options/impact/recommendation)
 
+## Priority (P0–P3) and Status
+
+P0–P3 definitions and status rules (used by the review scripts):
+`$HOME/.codex/skills/code-review (impl, single-review)/scripts/review-v2-policy.md`
+
 ## Review Focus (facet-aligned)
 
 - Correctness and logic: normal-path behavior, invariants
@@ -75,19 +81,21 @@ Tests: <what ran / not run>
 - Security and data safety: validation, auth, secrets, exposure
 - Performance and resource use: hot paths, I/O, memory
 - Tests and observability: coverage, regression, logging/metrics
+- Documentation: README/docs/ examples/ changelog/ migration notes, as needed
 - Design/consistency with project rules: layering, naming, responsibilities, maintainability
 
-## Output Template
+## Output Template (default)
 
 - Status: Blocked / Approved / Approved with nits / Question
-- Blockers: issue + concrete fix idea (required when Blocked)
+- Findings: list with priority prefix ([P0]..[P3]); keep discrete and actionable
 - Questions: what extra information is needed (required when Question)
 - Plan: when Blocked/Question, propose a shortest 3–6 step plan
 - Notes: optional improvement suggestions
 - Evidence: what you checked (commands/logs/SoT); what you did not check
+- JSON: `review-v2` JSON artifact (default; see below)
 - Next: next actions
 
-## Optional JSON Output (review-cycle integration)
+## JSON Output (default)
 
 - Path: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 - Schema: `.skilled-reviews/.reviews/schemas/review-v2.schema.json`
@@ -95,10 +103,10 @@ Tests: <what ran / not run>
 - Generate via `codex exec --output-schema <schema> --output-last-message <path>` (JSON only)
   - Includes P0–P3 via `priority` (0-3), repo-relative `code_location`, and `overall_correctness`.
 
-## Scripts (optional)
+## Scripts (default)
 
 - Single Review (review-cycle integration):
-  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]`
+  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review (impl, single-review)/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]`
 - Scope-id must match `[A-Za-z0-9._-]+`.
 - Scope-id must not be `.` or `..`.
 - Run-id must match `[A-Za-z0-9._-]+`.
@@ -111,13 +119,6 @@ Tests: <what ran / not run>
 - Requirements: `git`, `codex` CLI, `python3` (unless `VALIDATE=0`).
 - Output: `.skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<run-id>/code-review.json`
 - Execution timeout (harness): set command timeout to 1h; avoid EXEC_TIMEOUT_SEC unless a shorter, explicit limit is required.
-
-## Status Rules
-
-- Blocked: requires fixes
-- Question: cannot decide due to missing info
-- Approved: no blockers
-- Approved with nits: only minor improvements (no spec/safety impact)
 
 ## Commit/Push Policy
 

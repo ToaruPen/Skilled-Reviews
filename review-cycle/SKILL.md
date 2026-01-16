@@ -48,11 +48,11 @@ Decision: total <= 9 => Single Review; total >= 10 or hard trigger => Parallel R
 
 ## Scripts (run from repo root)
 - Run Single Review (code-review):
-  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id]`
+  `SOT="..." TESTS="..." "$HOME/.codex/skills/code-review (impl, single-review)/scripts/run_code_review.sh" <scope-id> [run-id]`
 - Run review-parallel:
-  `SOT="..." TESTS="..." "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id]`
+  `SOT="..." TESTS="..." "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id]`
 - Validate fragments:
-  `python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" <scope-id> [run-id] [--format]`
+  `python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" <scope-id> [run-id] [--format]`
 - Run pr-review:
   `SOT="..." TESTS="..." bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" <scope-id> [run-id]`
 Scope-id must match `[A-Za-z0-9._-]+`.

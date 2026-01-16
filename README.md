@@ -12,11 +12,13 @@ A repository bundling Codex CLI `impl` (alias of `implement-cycle`) plus review-
 ## Included skills
 
 - `impl` (alias)
+- `impl-np`
 - `implement-cycle`
-- `implementation`
-- `review-cycle`
-- `review-parallel`
-- `code-review`
+- `implement-cycle (no-parallel)`
+- `implementation (impl)`
+- `review-cycle (impl)`
+- `review-parallel (impl)`
+- `code-review (impl, single-review)`
 - `pr-review`
 
 ## Prerequisites
@@ -40,7 +42,7 @@ Copies these skills into `~/.codex/skills/` (or under `CODEX_HOME`).
 export SOT='- <rules/specs/ticket>'
 export TESTS='- <ran / not run>'
 
-"$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope --dry-run
+"$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope --dry-run
 ```
 
 ## Key toggles

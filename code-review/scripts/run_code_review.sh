@@ -64,15 +64,49 @@ fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skills_root="$(cd "$script_dir/../.." && pwd)"
-ensure_script="${skills_root}/review-parallel/scripts/ensure_review_schemas.sh"
-alt="${skills_root}/review-parallel (impl)/scripts/ensure_review_schemas.sh"
-if [[ -x "$ensure_script" ]]; then
-  : # ok
-elif [[ -x "$alt" ]]; then
-  ensure_script="$alt"
+local_ensure="${script_dir}/ensure_review_schemas.sh"
+shared_ensure="${skills_root}/review-parallel/scripts/ensure_review_schemas.sh"
+shared_ensure_impl="${skills_root}/review-parallel (impl)/scripts/ensure_review_schemas.sh"
+
+ensure_script=""
+if [[ -f "$local_ensure" ]]; then
+  ensure_script="$local_ensure"
+elif [[ -f "$shared_ensure_impl" ]]; then
+  ensure_script="$shared_ensure_impl"
+elif [[ -f "$shared_ensure" ]]; then
+  ensure_script="$shared_ensure"
 else
-  echo "ensure_review_schemas.sh not found: $ensure_script (or $alt)" >&2
+  echo "ensure_review_schemas.sh not found: $local_ensure (or $shared_ensure_impl or $shared_ensure)" >&2
   exit 1
+fi
+
+local_policy="${script_dir}/review-v2-policy.md"
+shared_policy="${skills_root}/review-parallel/scripts/review-v2-policy.md"
+shared_policy_impl="${skills_root}/review-parallel (impl)/scripts/review-v2-policy.md"
+
+policy_file=""
+if [[ -f "$local_policy" ]]; then
+  policy_file="$local_policy"
+elif [[ -f "$shared_policy_impl" ]]; then
+  policy_file="$shared_policy_impl"
+elif [[ -f "$shared_policy" ]]; then
+  policy_file="$shared_policy"
+else
+  echo "review-v2-policy.md not found: $local_policy (or $shared_policy_impl or $shared_policy)" >&2
+  exit 1
+fi
+
+if [[ "$policy_file" == "$local_policy" ]] && command -v cmp >/dev/null 2>&1; then
+  drift="0"
+  if [[ -f "$shared_policy_impl" ]] && ! cmp -s "$local_policy" "$shared_policy_impl"; then
+    drift="1"
+  fi
+  if [[ -f "$shared_policy" ]] && ! cmp -s "$local_policy" "$shared_policy"; then
+    drift="1"
+  fi
+  if [[ "$drift" == "1" ]]; then
+    echo "Warning: review policy drift detected; local policy differs from a shared policy copy" >&2
+  fi
 fi
 
 constraints="${CONSTRAINTS:-none}"
@@ -204,7 +238,7 @@ if [[ "$dry_run" == "1" ]]; then
   exit 0
 fi
 
-"$ensure_script"
+bash "$ensure_script"
 
 if [[ ! -f "$schema" ]]; then
   echo "Schema not found: $schema" >&2
@@ -290,28 +324,12 @@ Review rules:
   - do not rely on unstated assumptions; avoid speculation; show concrete impact from the diff
 - Ignore trivial style unless it obscures meaning or violates documented standards.
 - If there are no clear issues worth fixing, output findings=[].
-
-Priority (numeric 0-3):
-- P0 (0): Drop everything to fix. Blocks release/ops/major usage. Universal (not input-dependent).
-- P1 (1): Urgent. Should be fixed next cycle.
-- P2 (2): Normal. Fix eventually.
-- P3 (3): Low. Nice to have.
-
-Status rules:
-- Blocked if any finding has priority 0 or 1.
-- Question if missing info prevents a correctness judgment (add to questions).
-- Approved if findings=[] and questions=[].
-- Approved with nits otherwise (only priority 2/3 findings).
-
-overall_correctness mapping:
-- Approved / Approved with nits => "patch is correct"
-- Blocked / Question => "patch is incorrect"
-
-Finding requirements:
-- title: prefix with "[P#] " and keep <= 120 chars
+PROMPT
+  cat "$policy_file"
+  cat <<'PROMPT'
+Finding requirements (additional):
 - body: 1 paragraph Markdown; explain why it's a problem; keep it scannable
 - confidence_score: 0.0-1.0
-- priority: 0-3 (P0..P3)
 - code_location.repo_relative_path: repo-relative (no absolute paths); strip leading "a/" or "b/" from diff paths
 - code_location.line_range: keep as short as possible (prefer <=10 lines) and overlap the diff
 - Do not include code blocks longer than 3 lines. Use ```suggestion blocks only for minimal replacement code.
@@ -352,13 +370,19 @@ if [[ "$validate" != "0" ]]; then
     exit 1
   fi
 
-  validate_script="${skills_root}/review-parallel/scripts/validate_review_fragments.py"
-  alt_validate="${skills_root}/review-parallel (impl)/scripts/validate_review_fragments.py"
-  if [[ -f "$alt_validate" ]]; then
-    validate_script="$alt_validate"
-  fi
-  if [[ ! -f "$validate_script" ]]; then
-    echo "validate_review_fragments.py not found: $validate_script" >&2
+  local_validate="${script_dir}/validate_review_fragments.py"
+  shared_validate="${skills_root}/review-parallel/scripts/validate_review_fragments.py"
+  shared_validate_impl="${skills_root}/review-parallel (impl)/scripts/validate_review_fragments.py"
+
+  validate_script=""
+  if [[ -f "$local_validate" ]]; then
+    validate_script="$local_validate"
+  elif [[ -f "$shared_validate_impl" ]]; then
+    validate_script="$shared_validate_impl"
+  elif [[ -f "$shared_validate" ]]; then
+    validate_script="$shared_validate"
+  else
+    echo "validate_review_fragments.py not found: $local_validate (or $shared_validate_impl or $shared_validate)" >&2
     exit 1
   fi
 
@@ -367,7 +391,11 @@ if [[ "$validate" != "0" ]]; then
     format_arg+=(--format)
   fi
 
-  (cd "$repo_root" && python3 "$validate_script" "$scope_id" "$run_id" --facets "" --schema "$schema" --extra-file "$out" --extra-slug "overall" "${format_arg[@]}")
+  validate_cmd=(python3 "$validate_script" "$scope_id" "$run_id" --facets "" --schema "$schema" --extra-file "$out" --extra-slug "overall")
+  if (( ${#format_arg[@]} > 0 )); then
+    validate_cmd+=("${format_arg[@]}")
+  fi
+  (cd "$repo_root" && "${validate_cmd[@]}")
 fi
 
 tmp_run_file="${run_id_file}.tmp"

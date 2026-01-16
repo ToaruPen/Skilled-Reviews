@@ -75,13 +75,13 @@ Override with `ALLOW_LARGE_PATCH=1`.
 ## Script (run from repo root)
 
 Generate + validate + apply:
-`SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id]`
+`SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" <scope-id> [run-id]`
 
 Dry-run (checks prerequisites only):
-`SOT="..." ESTIMATION_FILE="..." "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id] --dry-run`
+`SOT="..." ESTIMATION_FILE="..." "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" <scope-id> [run-id] --dry-run`
 
 Follow-up fix run (after a Blocked/Question review):
-`SOT="..." ESTIMATION_FILE="..." REVIEW_FILE=".skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<review-run-id>/code-review.json" CONSTRAINTS="touch only ..." "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> <new-run-id>`
+`SOT="..." ESTIMATION_FILE="..." REVIEW_FILE=".skilled-reviews/.reviews/reviewed_scopes/<scope-id>/<review-run-id>/code-review.json" CONSTRAINTS="touch only ..." "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" <scope-id> <new-run-id>`
 
 ## Outputs
 - Patch (model output): `.skilled-reviews/.implementation/impl-runs/<scope-id>/<run-id>/patch.diff`

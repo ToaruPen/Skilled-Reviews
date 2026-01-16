@@ -27,7 +27,7 @@ echo "world" >> a.txt
 git add a.txt  # staged diff exists
 
 SOT='- none' TESTS='- not run' CODEX_BIN=true \
-  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" \
+  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" \
   demo-scope --dry-run
 echo "exit=$?"
 ```
@@ -42,7 +42,7 @@ Goal: Confirm `/` is rejected in `scope-id` (and fails fast with `exit 1`).
 
 ```bash
 SOT='- none' TESTS='- not run' CODEX_BIN=true \
-  "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" \
+  "$HOME/.codex/skills/code-review (impl, single-review)/scripts/run_code_review.sh" \
   'bad/scope' --dry-run
 echo "exit=$?"
 ```
@@ -115,7 +115,7 @@ cat > .skilled-reviews/.estimation/impl_smoke.md <<'MD'
 MD
 
 SOT='- none' ESTIMATION_FILE='.skilled-reviews/.estimation/impl_smoke.md' CODEX_BIN=true \
-  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" \
+  "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" \
   demo-scope --dry-run
 echo "exit=$?"
 
@@ -189,10 +189,10 @@ cat > review.json <<'JSON'
 }
 JSON
 
-python3 "$HOME/.codex/skills/implementation/scripts/extract_review_feedback.py" review.json
+python3 "$HOME/.codex/skills/implementation (impl)/scripts/extract_review_feedback.py" review.json
 
 SOT='- none' ESTIMATION_FILE='.skilled-reviews/.estimation/impl_smoke.md' REVIEW_FILE='review.json' CODEX_BIN=true \
-  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" \
+  "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" \
   demo-scope --dry-run
 echo "exit=$?"
 ```

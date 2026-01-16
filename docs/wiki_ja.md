@@ -71,7 +71,7 @@ export SOT='- <ticket/spec/rules>'
 export TESTS='- <ran / not run>'
 
 # `review-parallel`: 観点別フラグメント作成（フラグメント + diff summary を出力）
-"$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
+"$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
 
 # `pr-review`: 集約（diff summary + fragments のみ使用）
 bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
@@ -83,7 +83,7 @@ bash "$HOME/.codex/skills/pr-review/scripts/run_pr_review.sh" demo-scope
 export SOT='- <ticket/spec/rules>'
 export ESTIMATION_FILE='.skilled-reviews/.estimation/YYYY/MM/<scope>.md'
 
-"$HOME/.codex/skills/implementation/scripts/run_implementation.sh" demo-scope --dry-run
+"$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" demo-scope --dry-run
 ```
 
 ## デフォルトと調整
@@ -100,7 +100,7 @@ export ESTIMATION_FILE='.skilled-reviews/.estimation/YYYY/MM/<scope>.md'
 
 ```bash
 MODEL=gpt-5.2-codex REASONING_EFFORT=high \
-  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" demo-scope
+  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" demo-scope
 ```
 
 注意:
@@ -117,7 +117,7 @@ MODEL=gpt-5.2-codex REASONING_EFFORT=high \
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/review-parallel/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/review-parallel (impl)/scripts/run_review_parallel.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 引数:
@@ -151,7 +151,7 @@ run配下のフラグメントJSONを検証し、必要なら整形（pretty）�
 実行:
 
 ```bash
-python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.py" \
+python3 "$HOME/.codex/skills/review-parallel (impl)/scripts/validate_review_fragments.py" \
   <scope-id> [run-id] --format
 ```
 
@@ -169,7 +169,7 @@ python3 "$HOME/.codex/skills/review-parallel/scripts/validate_review_fragments.p
 
 ```bash
 SOT="..." TESTS="..." \
-  "$HOME/.codex/skills/code-review/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/code-review (impl, single-review)/scripts/run_code_review.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 注意:
@@ -210,7 +210,7 @@ SOT="..." TESTS="..." \
 
 ```bash
 SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." \
-  "$HOME/.codex/skills/implementation/scripts/run_implementation.sh" <scope-id> [run-id] [--dry-run]
+  "$HOME/.codex/skills/implementation (impl)/scripts/run_implementation.sh" <scope-id> [run-id] [--dry-run]
 ```
 
 注意:
@@ -226,7 +226,7 @@ SOT="..." ESTIMATION_FILE=".skilled-reviews/.estimation/..." \
 実行（対象repoルートで）:
 
 ```bash
-python3 "$HOME/.codex/skills/implementation/scripts/validate_implementation_patch.py" \
+python3 "$HOME/.codex/skills/implementation (impl)/scripts/validate_implementation_patch.py" \
   --repo-root . --patch <patch.diff> --policy .skilled-reviews/.implementation/impl-guardrails.toml
 ```
 
